@@ -9,6 +9,7 @@ namespace detail
 class pool;
 }
 
+
 enum class memory_type
 {
     cpu,
@@ -46,6 +47,9 @@ class hwvptr
 //class hwptr : public hwptr_base
 //{
 //};
+
+template<memory_type M>
+void* raw_malloc(std::size_t, int);
 
 hwvptr malloc(std::size_t);
 
