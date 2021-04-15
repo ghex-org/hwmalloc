@@ -14,5 +14,5 @@ void* raw_malloc<memory_type::cpu>(std::size_t, int)
 TEST(example, no1)
 {
     EXPECT_TRUE(true);
-    auto ptr = malloc(1);
+    auto ptr = hwmalloc::malloc(1);
 }
