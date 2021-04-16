@@ -1,5 +1,5 @@
-
 #pragma once
+
 #include <cstddef>
 
 namespace hwmalloc
@@ -7,8 +7,7 @@ namespace hwmalloc
 namespace detail
 {
 class pool;
-}
-
+} // namespace detail
 
 enum class memory_type
 {
@@ -16,43 +15,43 @@ enum class memory_type
     gpu
 };
 
+template<memory_type MemoryType>
 class hwvptr
 {
+  public:
+    static constexpr memory_type type = MemoryType;
+
+  private:
     friend class detail::pool;
 
   private:
     void*       m_data = nullptr;
     std::size_t m_size = 0u;
     int         m_memory_domain = -1;
-    memory_type m_type = memory_type::cpu;
 
   private:
     hwvptr() noexcept {}
-    hwvptr(void* data, std::size_t size, int memory_domain, memory_type type) noexcept
+    hwvptr(void* data, std::size_t size, int memory_domain) noexcept
     : m_data{data}
     , m_size{size}
     , m_memory_domain{memory_domain}
-    , m_type{type}
     {
     }
 
   public:
     hwvptr(hwvptr const&) noexcept = default;
-    hwvptr(hwvptr&&) noexcept = default;
     hwvptr& operator=(hwvptr const&) noexcept = default;
-    hwvptr& operator=(hwvptr&&) noexcept = default;
+
+    void* get() const noexcept { return m_data; }
+
+    hwvptr release() noexcept
+    {
+        hwvptr tmp(*this);
+        *this = hwvptr();
+        return tmp;
+    }
+
+    operator bool() const noexcept { return (bool)m_data; }
 };
-
-//template<typename T>
-//class hwptr : public hwptr_base
-//{
-//};
-
-template<memory_type M>
-void* raw_malloc(std::size_t, int);
-
-hwvptr malloc(std::size_t);
-
-void free(hwvptr const&);
 
 } // namespace hwmalloc
