@@ -10,21 +10,20 @@ class pool
     template<memory_type MemoryType>
     hw_vptr<MemoryType> malloc(std::size_t s) const
     {
-        hw_vptr<MemoryType> x;
-        x.m_data = raw_malloc<MemoryType>(s, 0);
-        return x;
+        int memory_domain = 0;
+        return hw_vptr<MemoryType>(raw_malloc<MemoryType>(s, memory_domain), memory_domain);
     }
 
     template<memory_type MemoryType>
-    void free(hw_vptr<MemoryType> ptr) const
+    void free(hw_vptr<MemoryType> ptr, std::size_t size) const
     {
-        raw_free<MemoryType>(ptr.m_data, ptr.m_memory_domain);
+        raw_free<MemoryType>(ptr.m_data, size, ptr.m_memory_domain);
     }
 
     template<memory_type MemoryType>
-    void free(hw_vptr<MemoryType> ptr, std::size_t alignment) const
+    void free(hw_vptr<MemoryType> ptr, std::size_t alignment, std::size_t size) const
     {
-        raw_free<MemoryType>(ptr.m_data, ptr.m_memory_domain);
+        raw_free<MemoryType>(ptr.m_data, size, ptr.m_memory_domain);
     }
 };
 
@@ -57,16 +56,16 @@ malloc(std::size_t alignment, std::size_t s)
 
 template<>
 void
-free(hw_vptr<memory_type::cpu> p)
+free(hw_vptr<memory_type::cpu> p, std::size_t size)
 {
-    get_pool().free(p);
+    get_pool().free(p, size);
 }
 
 template<>
 void
-free(hw_vptr<memory_type::cpu> p, std::size_t alignment)
+free(hw_vptr<memory_type::cpu> p, std::size_t alignment, std::size_t size)
 {
-    get_pool().free(p, alignment);
+    get_pool().free(p, alignment, size);
 }
 
 #ifdef HWMALLOC_ENABLE_GPU
@@ -87,16 +86,16 @@ malloc(std::size_t alignment, std::size_t s)
 
 template<>
 void
-free(hw_vptr<memory_type::gpu> p)
+free(hw_vptr<memory_type::gpu> p, std::size_t size)
 {
-    get_pool().free(p);
+    get_pool().free(p, size);
 }
 
 template<>
 void
-free(hw_vptr<memory_type::gpu> p, std::size_t alignment)
+free(hw_vptr<memory_type::gpu> p, std::size_t alignment, std::size_t size)
 {
-    get_pool().free(p, alignment);
+    get_pool().free(p, alignment, size);
 }
 #endif
 

@@ -31,14 +31,12 @@ class hw_vptr
     friend class hw_vptr<MemoryType, void const*>;
 
   private:
-    VoidPtr     m_data = nullptr;
-    std::size_t m_size = 0u;
-    int         m_memory_domain = -1;
+    VoidPtr m_data = nullptr;
+    int     m_memory_domain = -1;
 
   private:
-    constexpr hw_vptr(void* data, std::size_t size, int memory_domain) noexcept
+    constexpr hw_vptr(void* data, int memory_domain) noexcept
     : m_data{data}
-    , m_size{size}
     , m_memory_domain{memory_domain}
     {
     }
@@ -51,7 +49,6 @@ class hw_vptr
     hw_vptr& operator=(std::nullptr_t) noexcept
     {
         m_data = nullptr;
-        m_size = 0u;
         m_memory_domain = -1;
         return *this;
     }
@@ -70,16 +67,9 @@ class hw_vptr
     constexpr VoidPtr get() const noexcept { return m_data; }
     void              set(VoidPtr ptr) noexcept { m_data = ptr; }
 
-    //constexpr hw_vptr release() noexcept
-    //{
-    //    hw_vptr tmp(*this);
-    //    *this = hw_vptr();
-    //    return tmp;
-    //}
-
     constexpr operator bool() const noexcept { return (bool)m_data; }
 
-    template<typename T> //, typename = std::enable_if_t<!std::is_const<T>::value> >
+    template<typename T>
     constexpr explicit operator hw_ptr<T, MemoryType>() const noexcept;
 };
 
@@ -91,20 +81,10 @@ class hw_vptr<MemoryType, void const*>
 
   private:
     using this_type = hw_vptr<MemoryType, void const*>;
-    friend class detail::pool;
 
   private:
     void const* m_data = nullptr;
-    std::size_t m_size = 0u;
     int         m_memory_domain = -1;
-
-  private:
-    constexpr hw_vptr(void const* data, std::size_t size, int memory_domain) noexcept
-    : m_data{data}
-    , m_size{size}
-    , m_memory_domain{memory_domain}
-    {
-    }
 
   public:
     constexpr hw_vptr() noexcept {}
@@ -112,7 +92,6 @@ class hw_vptr<MemoryType, void const*>
     constexpr hw_vptr(hw_vptr const&) noexcept = default;
     constexpr hw_vptr(hw_vptr<MemoryType, void*> const& ptr) noexcept
     : m_data{ptr.m_data}
-    , m_size{ptr.m_size}
     , m_memory_domain{ptr.m_memory_domain}
     {
     }
@@ -120,7 +99,6 @@ class hw_vptr<MemoryType, void const*>
     hw_vptr& operator=(std::nullptr_t) noexcept
     {
         m_data = nullptr;
-        m_size = 0u;
         m_memory_domain = -1;
         return *this;
     }

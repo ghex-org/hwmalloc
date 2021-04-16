@@ -28,9 +28,9 @@ class allocator
         return (pointer)hwmalloc::malloc<M>(alignof(T),n*sizeof(T));
     }
 
-    void deallocate(pointer p, size_type /*n*/)
+    void deallocate(pointer p, size_type n)
     {
-        hwmalloc::free((void_pointer)p, alignof(T));
+        hwmalloc::free((void_pointer)p, alignof(T), n*sizeof(T));
     }
 
     //construct: use default std::allocator_traits implementation

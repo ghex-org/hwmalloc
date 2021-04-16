@@ -196,7 +196,7 @@ namespace hwmalloc
 {
 template<>
 void*
-raw_malloc<memory_type::cpu>(std::size_t s, int)
+raw_malloc<memory_type::cpu>(std::size_t s, int memory_domain)
 {
     std::cout << "allocating " << s << " bytes" << std::endl;
     return std::malloc(s);
@@ -204,7 +204,7 @@ raw_malloc<memory_type::cpu>(std::size_t s, int)
 
 template<>
 void
-raw_free<memory_type::cpu>(void* ptr, int)
+raw_free<memory_type::cpu>(void* ptr, std::size_t s, int memory_domain)
 {
     std::free(ptr);
 }
@@ -215,9 +215,12 @@ TEST(new_delete, no1)
 {
     using namespace hwmalloc;
     auto ptr = hw_new<int>(42);
-    //std::cout << *ptr << std::endl;
     EXPECT_EQ(42, *ptr);
     hw_delete(ptr);
+
+    auto arr = hw_new_array<int>(20, 99);
+    EXPECT_EQ(arr[15],99);
+    hw_delete_array(arr, 20);
 }
 
 TEST(allocator, vector)

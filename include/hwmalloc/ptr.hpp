@@ -71,28 +71,25 @@ class hw_ptr
     constexpr          operator bool() const noexcept { return (bool)m_ptr; }
 
   public: // iterator functions
-
     this_type& operator++() noexcept
     {
-        m_ptr.set(get()+1);
+        m_ptr.set(get() + 1);
         return *this;
     }
     this_type operator++(int) noexcept
     {
         auto tmp = *this;
-        m_ptr.set(get()+1);
+        m_ptr.set(get() + 1);
         return tmp;
     }
     this_type& operator+=(std::size_t n) noexcept
     {
-        m_ptr.set(get()+n);
+        m_ptr.set(get() + n);
         return *this;
     }
-    friend this_type operator+(this_type a, std::size_t n) noexcept
-    {
-        return (a+=n);
-    }
-    
+    friend this_type operator+(this_type a, std::size_t n) noexcept { return (a += n); }
+
+    reference& operator[](std::size_t n) const noexcept { return *(get() + n); }
 };
 
 template<memory_type MemoryType, typename VoidPtr>
