@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 #include <hwmalloc/malloc.hpp>
 #include <hwmalloc/new.hpp>
+#include <hwmalloc/allocator.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <type_traits>
+#include <vector>
 
 // concepts for VoidPointer
 // --------
@@ -102,8 +104,8 @@ TEST(void_ptr, NullablePointer)
 {
     using namespace hwmalloc;
     constexpr auto M = memory_type::cpu;
-    using void_ptr_t = hwvptr<M>;
-    using const_void_ptr_t = hwcvptr<M>;
+    using void_ptr_t = hw_vptr<M>;
+    using const_void_ptr_t = hw_cvptr<M>;
 
     check_nullable_pointer<void_ptr_t>();
     check_nullable_pointer<const_void_ptr_t>();
@@ -132,8 +134,8 @@ TEST(T_ptr, NullablePointer)
 {
     using namespace hwmalloc;
     constexpr auto M = memory_type::cpu;
-    using T_ptr_t = hwptr<int, M>;
-    using const_T_ptr_t = hwptr<const int, M>;
+    using T_ptr_t = hw_ptr<int, M>;
+    using const_T_ptr_t = hw_ptr<const int, M>;
 
     check_nullable_pointer<T_ptr_t>();
     check_nullable_pointer<const_T_ptr_t>();
@@ -143,10 +145,10 @@ TEST(T_ptr, conversions)
 {
     using namespace hwmalloc;
     constexpr auto M = memory_type::cpu;
-    using void_ptr_t = hwvptr<M>;
-    using const_void_ptr_t = hwcvptr<M>;
-    using T_ptr_t = hwptr<int, M>;
-    using const_T_ptr_t = hwptr<const int, M>;
+    using void_ptr_t = hw_vptr<M>;
+    using const_void_ptr_t = hw_cvptr<M>;
+    using T_ptr_t = hw_ptr<int, M>;
+    using const_T_ptr_t = hw_ptr<const int, M>;
 
     void_ptr_t       vptr;
     const_void_ptr_t cvptr;
@@ -196,6 +198,7 @@ template<>
 void*
 raw_malloc<memory_type::cpu>(std::size_t s, int)
 {
+    std::cout << "allocating " << s << " bytes" << std::endl;
     return std::malloc(s);
 }
 
@@ -215,4 +218,21 @@ TEST(new_delete, no1)
     //std::cout << *ptr << std::endl;
     EXPECT_EQ(42, *ptr);
     hw_delete(ptr);
+}
+
+TEST(allocator, vector)
+{
+    using namespace hwmalloc;
+
+    std::vector<int, allocator<int, memory_type::cpu>> vec;
+
+    vec.reserve(10);
+    vec.resize(20);
+
+    std::cout << vec[15] << std::endl;
+
+    for (auto x : vec)
+        std::cout << x << " ";
+    std::cout << std::endl;
+
 }

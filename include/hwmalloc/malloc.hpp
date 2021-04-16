@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hwmalloc/ptr.hpp>
+#include <hwmalloc/void_ptr.hpp>
 
 namespace hwmalloc
 {
@@ -15,17 +15,17 @@ void raw_free(void*, int);
 // allocate memory
 // ---------------
 template<memory_type MemoryType>
-hwvptr<MemoryType> malloc(std::size_t size);
+hw_vptr<MemoryType> malloc(std::size_t size);
 
 template<memory_type MemoryType>
-hwvptr<MemoryType> malloc(std::size_t alignment, std::size_t size);
+hw_vptr<MemoryType> malloc(std::size_t alignment, std::size_t size);
 
 // free memory
 // -----------
 template<memory_type MemoryType>
-void free(hwvptr<MemoryType> ptr);
+void free(hw_vptr<MemoryType> ptr);
 
 template<memory_type MemoryType>
-void free(hwvptr<MemoryType> ptr, std::size_t alignment);
+void free(hw_vptr<MemoryType> ptr, std::size_t alignment);
 
 } // namespace hwmalloc
