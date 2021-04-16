@@ -211,15 +211,19 @@ raw_free<memory_type::cpu>(void* ptr, std::size_t s, int memory_domain)
 
 } // namespace hwmalloc
 
-TEST(new_delete, no1)
+TEST(new_delete, object)
 {
     using namespace hwmalloc;
     auto ptr = hw_new<int>(42);
     EXPECT_EQ(42, *ptr);
     hw_delete(ptr);
+}
 
+TEST(new_delete, array)
+{
+    using namespace hwmalloc;
     auto arr = hw_new_array<int>(20, 99);
-    EXPECT_EQ(arr[15],99);
+    EXPECT_EQ(arr[15], 99);
     hw_delete_array(arr, 20);
 }
 
@@ -234,8 +238,6 @@ TEST(allocator, vector)
 
     std::cout << vec[15] << std::endl;
 
-    for (auto x : vec)
-        std::cout << x << " ";
+    for (auto x : vec) std::cout << x << " ";
     std::cout << std::endl;
-
 }
