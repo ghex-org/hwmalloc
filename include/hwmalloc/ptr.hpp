@@ -41,32 +41,36 @@ class hw_ptr
     constexpr friend bool operator!=(hw_ptr a, hw_ptr b) noexcept { return (a.m_ptr != b.m_ptr); }
 
   public:
-    //T const& operator*() const noexcept { return *reinterpret_cast<T const*>(m_ptr.get()); }
-    //T const* operator->() const noexcept { return reinterpret_cast<T const*>(m_ptr.get()); }
     reference operator*() const noexcept { return *reinterpret_cast<T*>(m_ptr.get()); }
     pointer   operator->() const noexcept { return reinterpret_cast<T*>(m_ptr.get()); }
     pointer   get() const noexcept { return reinterpret_cast<T*>(m_ptr.get()); }
 
-    //template<typename R, typename... Args>
-    //const pmfc<R (T::*)(Args...)> operator->*(R (T::*pmf)(Args...)) const noexcept
-    //{
-    //    return {m_ptr.get(), pmf};
-    //}
-    //template<typename R, typename... Args>
-    //const pmfc<R (T::*)(Args...) const> operator->*(R (T::*pmf)(Args...) const) const noexcept
-    //{
-    //    return {m_ptr.get(), pmf};
-    //}
-
-    //template<typename U>
-    //U& operator->*(U T::* pm) const noexcept
-    //{
-    //    return reinterpret_cast<T*>(m_ptr.get())->*pm;
-    //}
+    // pointer to member function
+    template<typename R, typename U, typename... Args>
+    typename std::enable_if<std::is_same<U, T>::value && std::is_class<U>::value,
+        const pmfc<R (U::*)(Args...)>>::type
+    operator->*(R (U::*pmf)(Args...)) const noexcept
+    {
+        return {get(), pmf};
+    }
+    template<typename R, typename U, typename... Args>
+    typename std::enable_if<std::is_same<U, T>::value && std::is_class<U>::value,
+        const pmfc<R (U::*)(Args...) const>>::type
+    operator->*(R (U::*pmf)(Args...) const) const noexcept
+    {
+        return {get(), pmf};
+    }
+    // pointer to member
+    template<typename M, typename U>
+    typename std::enable_if<std::is_same<U, T>::value && std::is_class<U>::value, M&>::type
+    operator->*(M U::*pm) const noexcept
+    {
+        return get()->*pm;
+    }
 
     constexpr explicit operator void_ptr_t() const noexcept { return m_ptr; }
     constexpr explicit operator const_void_ptr_t() const noexcept { return m_ptr; }
-    // needed for allocator traits: construct
+    // needed for std::allocator_traits::construct
     constexpr explicit operator void*() const noexcept { return m_ptr.get(); }
     constexpr          operator bool() const noexcept { return (bool)m_ptr; }
 
