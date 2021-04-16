@@ -20,7 +20,7 @@ inline void
 hw_delete(hwptr<T, memory_type::cpu>& ptr)
 {
     ptr->~T();
-    free<memory_type::cpu>(ptr.m_ptr);
+    free<memory_type::cpu>(ptr.m_ptr, alignof(T));
 }
 
 } // namespace hwmalloc

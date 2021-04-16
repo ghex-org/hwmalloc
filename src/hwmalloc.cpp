@@ -21,6 +21,13 @@ class pool
         auto p = ptr.release();
         raw_free<MemoryType>(p.m_data, p.m_memory_domain);
     }
+
+    template<memory_type MemoryType>
+    void free(hwvptr<MemoryType>& ptr, std::size_t alignment) const
+    {
+        auto p = ptr.release();
+        raw_free<MemoryType>(p.m_data, p.m_memory_domain);
+    }
 };
 
 } // namespace detail
@@ -54,6 +61,13 @@ void
 free(hwvptr<memory_type::cpu>& p)
 {
     get_pool().free(p);
+}
+
+template<>
+void
+free(hwvptr<memory_type::cpu>& p, std::size_t alignment)
+{
+    get_pool().free(p, alignment);
 }
 
 } // namespace hwmalloc

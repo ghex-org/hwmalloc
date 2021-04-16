@@ -30,6 +30,9 @@ malloc()
 // free memory
 // -----------
 template<memory_type MemoryType>
-void free(hwvptr<MemoryType>&);
+void free(hwvptr<MemoryType>& ptr);
+
+template<memory_type MemoryType>
+void free(hwvptr<MemoryType>& ptr, std::size_t alignment);
 
 } // namespace hwmalloc
