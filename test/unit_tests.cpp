@@ -2,6 +2,7 @@
 #include <hwmalloc/malloc.hpp>
 #include <hwmalloc/new.hpp>
 #include <hwmalloc/allocator.hpp>
+#include <hwmalloc/stateful_allocator.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <type_traits>
@@ -232,6 +233,22 @@ TEST(allocator, vector)
     using namespace hwmalloc;
 
     std::vector<int, allocator<int, memory_type::cpu>> vec;
+
+    vec.reserve(10);
+    vec.resize(20);
+
+    std::cout << vec[15] << std::endl;
+
+    for (auto x : vec) std::cout << x << " ";
+    std::cout << std::endl;
+}
+
+TEST(stateful_allocator, vector)
+{
+    using namespace hwmalloc;
+
+    std::vector<int, stateful_allocator<int, memory_type::cpu>> vec(
+        stateful_allocator<int, memory_type::cpu>(1));
 
     vec.reserve(10);
     vec.resize(20);
