@@ -23,5 +23,6 @@ function(reg_test t)
     add_test(NAME ${t} COMMAND $<TARGET_FILE:${t}>)
 endfunction()
 
-reg_test(unit_tests)
+#reg_test(unit_tests)
+reg_test(test_numa)
 
