@@ -23,6 +23,7 @@ class numa_tools
         void* const      ptr = nullptr;
         size_type const  size = 0u;
         index_type const node = 0u;
+        bool const       use_numa_free = true;
 
         operator bool() const noexcept { return (bool)ptr; }
     };
@@ -55,10 +56,12 @@ class numa_tools
     bool        can_allocate_on(index_type node) const noexcept;
     allocation  allocate(size_type num_pages) const noexcept;
     allocation  allocate(size_type num_pages, index_type node) const noexcept;
+    allocation  allocate_malloc(size_type num_pages) const noexcept;
     void        free(allocation const& a) const noexcept;
 
   private:
-    void discover_nodes() noexcept;
+    void       discover_nodes() noexcept;
+    index_type get_node(void* ptr) const noexcept;
 };
 
 const numa_tools& numa() noexcept;

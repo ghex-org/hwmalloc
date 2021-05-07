@@ -3,6 +3,7 @@
 #include <numa.h>
 #include <unistd.h>
 #include <algorithm>
+#include <cstdlib>
 
 #ifdef HWMALLOC_NUMA_THROWS
 #include <stdexcept>
@@ -82,16 +83,51 @@ numa_tools::allocate(size_type num_pages) const noexcept
 numa_tools::allocation
 numa_tools::allocate(size_type num_pages, index_type node) const noexcept
 {
-    if (!can_allocate_on(node)) return {};
+    if (num_pages == 0u) return {};
+    if (!can_allocate_on(node))
+    {
+        // try preferred node
+        node = preferred_node();
+        // fall back to malloc
+        if (!can_allocate_on(node)) return allocate_malloc(num_pages);
+    }
     auto ptr = numa_alloc_onnode(num_pages * page_size_, node);
-    if (!ptr) return {};
+    // fall back to malloc
+    if (!ptr) return allocate_malloc(num_pages);
     return {ptr, num_pages * page_size_, node};
+}
+
+numa_tools::allocation
+numa_tools::allocate_malloc(size_type num_pages) const noexcept
+{
+    void* ptr = std::malloc(num_pages * page_size_);
+    if (!ptr) return {};
+    return {ptr, num_pages * page_size_, get_node(ptr), false};
+}
+
+numa_tools::index_type
+numa_tools::get_node(void* ptr) const noexcept
+{
+    int node_id = 0;
+    get_mempolicy(&node_id, // mode: node id
+        NULL,               // nodemask:  ignore
+        0,                  // maxnode: ignore
+        ptr,                // memory addr
+        MPOL_F_ADDR         // return information about policy governing addr
+            | MPOL_F_NODE   // return node id in mode
+    );
+    return static_cast<index_type>(node_id);
 }
 
 void
 numa_tools::free(numa_tools::allocation const& a) const noexcept
 {
-    numa_free(a.ptr, a.size);
+    if (a)
+    {
+        if (a.use_numa_free) numa_free(a.ptr, a.size);
+        else
+            std::free(a.ptr);
+    }
 }
 
 // factory function
