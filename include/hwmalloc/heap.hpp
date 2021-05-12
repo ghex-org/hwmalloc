@@ -3,6 +3,7 @@
 #include <hwmalloc/detail/fixed_size_heap.hpp>
 #include <hwmalloc/void_ptr.hpp>
 #include <hwmalloc/const_void_ptr.hpp>
+#include <hwmalloc/allocator.hpp>
 #include <vector>
 #include <unordered_map>
 
@@ -12,12 +13,15 @@ template<typename Context>
 class heap
 {
   public:
+    using this_type = heap<Context>;
     using fixed_size_heap_type = detail::fixed_size_heap<Context>;
     using block_type = typename fixed_size_heap_type::block_type;
     using heap_vector = std::vector<std::unique_ptr<fixed_size_heap_type>>;
     using heap_map = std::unordered_map<std::size_t, std::unique_ptr<fixed_size_heap_type>>;
     using pointer = hw_void_ptr<block_type>;
     using const_pointer = hw_const_void_ptr<block_type>;
+    template<typename T>
+    using allocator_type = allocator<T, this_type>;
 
     // There are 5 size classes that the heap uses. For each size class it relies on a
     // fixed_size_heap. The size classes are:
@@ -132,9 +136,13 @@ class heap
                     (s_large_limit << (i + 1)), m_never_free);
     }
 
+    heap(heap const&) = delete;
+    heap(heap&&) = delete;
+
     pointer allocate(std::size_t size, std::size_t numa_node)
     {
-        if (size <= s_tiny_limit) return {m_tiny_heaps[tiny_bucket_index(size)]->allocate(numa_node)};
+        if (size <= s_tiny_limit)
+            return {m_tiny_heaps[tiny_bucket_index(size)]->allocate(numa_node)};
         else if (size <= m_max_size)
             return {m_heaps[bucket_index(size)]->allocate(numa_node)};
         else
@@ -153,9 +161,15 @@ class heap
     }
 
     template<typename VoidPtr>
-    void free(hw_void_ptr<block_type,VoidPtr> const & ptr)
+    void free(hw_void_ptr<block_type, VoidPtr> const& ptr)
     {
         ptr.m_data.release();
+    }
+
+    template<typename T>
+    allocator_type<T> get_allocator(std::size_t numa_node) noexcept
+    {
+        return {this, numa_node};
     }
 
     //auto allocate_unique(std::size_t size, std::size_t numa_node)
