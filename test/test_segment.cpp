@@ -140,4 +140,9 @@ TEST(heap, construction)
     auto b = h.allocate(1, 0);
     std::cout << b.m_ptr << std::endl;
     h.free(b);
+
+    {
+    auto ub = h.allocate_unique(65536, 0);
+    }
+    std::cout << "after unique ptr destructor" << std::endl;
 }

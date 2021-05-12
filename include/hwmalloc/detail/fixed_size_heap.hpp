@@ -40,11 +40,7 @@ class fixed_size_heap
 
     block_type allocate(std::size_t numa_node) { return m_pools[numa_node]->allocate(); }
 
-    void free(block_type const& b)
-    {
-        //m_pools[b.m_segment->numa_node()]->free(b);
-        b.m_segment->get_pool()->free(b);
-    }
+    void free(block_type const& b) { b.release(); }
 };
 
 } // namespace detail

@@ -38,11 +38,7 @@ class segment
         void*           m_ptr = nullptr;
         handle_type_cpu m_handle_cpu;
 
-        //void release() const noexcept
-        //{
-        //    while (!m_segment->m_freed_stack.push(*this)) {}
-        //    ++m_segment->m_num_freed;
-        //}
+        void release() const noexcept { m_segment->get_pool()->free(*this); }
     };
 
     struct allocation_holder
@@ -65,7 +61,6 @@ class segment
     region_type_cpu   m_region_cpu;
     stack_type        m_freed_stack;
     std::atomic<long> m_num_freed;
-    //std::mutex m_mutex;
 
   public:
     template<typename Stack>
@@ -80,7 +75,6 @@ class segment
     , m_num_freed(0)
     {
         char* origin = (char*)m_allocation.m.ptr;
-        //for (std::size_t i = 0; i < m_num_blocks; ++i)
         for (std::size_t i = m_num_blocks; i > 0; --i)
         {
             block b{this, origin + (i - 1) * block_size,
@@ -91,6 +85,11 @@ class segment
 
     segment(segment const&) = delete;
     segment(segment&&) = delete;
+
+    ~segment() noexcept
+    {
+        std::cout << "segment destructor" << std::endl;
+    }
 
     std::size_t block_size() const noexcept { return m_block_size; }
     std::size_t capacity() const noexcept { return m_num_blocks; }
@@ -107,7 +106,6 @@ class segment
     {
         std::cout << "collecting" << std::endl;
         const auto consumed = m_freed_stack.consume_all([&stack](block const& b) {
-            //std::cout << "  pushing block " << b.m_ptr << std::endl;
             while (!stack.push(b)) {}
         });
         m_num_freed.fetch_sub(consumed);

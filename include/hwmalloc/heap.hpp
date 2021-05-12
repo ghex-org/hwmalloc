@@ -148,7 +148,44 @@ class heap
         }
     }
 
-    void free(block_type const& b) { b.m_segment->get_pool()->free(b); }
+    void free(block_type const& b) { b.release(); }
+
+    auto allocate_unique(std::size_t size, std::size_t numa_node)
+    {
+        struct unique_block : public block_type
+        {
+            unique_block() noexcept = default;
+            unique_block(block_type&& b) noexcept
+            : block_type(std::move(b))
+            {}
+            unique_block(unique_block const &) noexcept = delete;
+            unique_block& operator=(unique_block const &) noexcept = delete;
+            unique_block(unique_block&& other) noexcept
+            : block_type(std::move(other))
+            {
+                other.m_ptr=nullptr;
+            }
+            unique_block& operator=(unique_block&& other) noexcept
+            {
+                static_cast<block_type&>(*this) = static_cast<block_type&&>(other);
+                other.m_ptr=nullptr;
+                return *this;
+            }
+            ~unique_block()
+            {
+                if (this->m_ptr)
+                    this->release();
+            }
+        };
+        return unique_block(allocate(size, numa_node));
+    }
 };
+
+template<typename Context>
+void
+free(typename detail::segment<Context>::block const& b) noexcept
+{
+    b.release();
+}
 
 } // namespace hwmalloc

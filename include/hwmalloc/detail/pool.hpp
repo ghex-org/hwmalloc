@@ -1,7 +1,6 @@
 #pragma once
 
 #include <hwmalloc/detail/segment.hpp>
-//#include <vector>
 #include <unordered_map>
 #include <mutex>
 #include <memory>
@@ -18,7 +17,6 @@ class pool
     using segment_type = segment<Context>;
     using block_type = typename segment_type::block;
     using stack_type = boost::lockfree::stack<block_type>;
-    //using segment_vector = std::vector<std::unique_ptr<segment_type>>;
     using segment_map = std::unordered_map<segment_type*, std::unique_ptr<segment_type>>;
 
   private:
