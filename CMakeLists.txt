@@ -1,10 +1,29 @@
 cmake_minimum_required(VERSION 3.14.5)
 project(hwmalloc LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)
+if(NOT CMAKE_BUILD_TYPE) # AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build." FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+    set_property(CACHE CMAKE_CXX_FLAGS PROPERTY VALUE "-Wall -Wextra -Wpedantic")
+endif()
+
 
 add_library(hwmalloc SHARED)
 #add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
+
+set(HWMALLOC_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${HWMALLOC_MODULE_PATH}")
+
+find_package(NUMA REQUIRED)
+target_link_libraries(hwmalloc PRIVATE NUMA::libnuma)
+set(HWMALLOC_NUMA_THROWS OFF CACHE BOOL "True if numa_tools may throw during initialization")
+if (HWMALLOC_NUMA_THROWS)
+    target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_THROWS)
+endif()
+find_package(Boost REQUIRED)
+target_link_libraries(hwmalloc INTERFACE Boost::boost)
 
 target_include_directories(hwmalloc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

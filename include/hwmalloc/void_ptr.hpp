@@ -1,5 +1,6 @@
 #pragma once
 
+#include <hwmalloc/memory_type.hpp>
 #include <cstddef>
 #include <type_traits>
 
@@ -9,12 +10,6 @@ namespace detail
 {
 class pool;
 } // namespace detail
-
-enum class memory_type
-{
-    cpu,
-    gpu
-};
 
 template<typename T, memory_type MemoryType>
 class hw_ptr;
