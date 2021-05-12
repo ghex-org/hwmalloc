@@ -112,6 +112,11 @@ class hw_ptr<const T, Block>
     }
 
     friend this_type operator-(this_type a, std::size_t n) noexcept { return (a -= n); }
+
+    friend difference_type operator-(this_type const& a, this_type const& b) noexcept
+    {
+        return (a.get() - b.get());
+    }
 };
 
 template<typename Block>

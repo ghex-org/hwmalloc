@@ -123,6 +123,9 @@ class hw_ptr
 
     friend this_type operator-(this_type a, std::size_t n) noexcept { return (a -= n); }
 
+    friend difference_type operator-(this_type const & a, this_type const & b) noexcept 
+    { return ( a.get() - b.get() ); }
+
     reference& operator[](std::size_t n) const noexcept { return *(get() + n); }
 };
 

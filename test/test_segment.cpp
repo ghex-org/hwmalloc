@@ -27,7 +27,7 @@ struct context
         {
         }
 
-        region(region const &) = delete;
+        region(region const&) = delete;
 
         region(region&& other) noexcept
         : ptr{std::exchange(other.ptr, nullptr)}
@@ -86,19 +86,18 @@ TEST(pool, construction)
 {
     using pool_t = hwmalloc::detail::pool<context>;
     //using block_t = pool_t::block_type;
-    
+
     context c;
 
     pool_t p(&c, 8, hwmalloc::numa().page_size(), 0, false);
 
-
-    for (unsigned int i=0; i<512; ++i)
+    for (unsigned int i = 0; i < 512; ++i)
     {
         auto b = p.allocate();
         std::cout << b.m_ptr << std::endl;
-        if (i%2==0) p.free(b);
+        if (i % 2 == 0) p.free(b);
     }
-    
+
     {
         auto b = p.allocate();
         std::cout << b.m_ptr << std::endl;
@@ -109,18 +108,18 @@ TEST(pool, construction)
 TEST(fixed_size_heap, construction)
 {
     using heap_t = hwmalloc::detail::fixed_size_heap<context>;
-    
+
     context c;
 
     heap_t h(&c, 8, hwmalloc::numa().page_size(), false);
-    
-    for (unsigned int i=0; i<512; ++i)
+
+    for (unsigned int i = 0; i < 512; ++i)
     {
         auto b = h.allocate(0);
         std::cout << b.m_ptr << std::endl;
-        if (i%2==0) h.free(b);
+        if (i % 2 == 0) h.free(b);
     }
-    
+
     {
         auto b = h.allocate(0);
         std::cout << b.m_ptr << std::endl;
@@ -131,7 +130,7 @@ TEST(fixed_size_heap, construction)
 TEST(heap, construction)
 {
     using heap_t = hwmalloc::heap<context>;
-    
+
     context c;
 
     heap_t h(&c);
@@ -144,4 +143,17 @@ TEST(heap, construction)
     //auto ub = h.allocate_unique(65536, 0);
     //}
     //std::cout << "after unique ptr destructor" << std::endl;
+}
+
+TEST(heap, allocator)
+{
+    using heap_t = hwmalloc::heap<context>;
+
+    context c;
+
+    heap_t h(&c);
+
+    std::vector<double, heap_t::allocator_type<double>> vec(h.template get_allocator<double>(0));
+
+    vec.resize(500);
 }
