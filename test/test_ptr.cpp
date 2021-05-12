@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <hwmalloc/void_ptr.hpp>
+#include <hwmalloc/const_void_ptr.hpp>
 #include <hwmalloc/ptr.hpp>
+#include <hwmalloc/const_ptr.hpp>
 #include <iostream>
 #include <type_traits>
 

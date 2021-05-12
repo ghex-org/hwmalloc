@@ -2,6 +2,7 @@
 
 #include <hwmalloc/detail/fixed_size_heap.hpp>
 #include <hwmalloc/void_ptr.hpp>
+#include <hwmalloc/const_void_ptr.hpp>
 #include <vector>
 #include <unordered_map>
 

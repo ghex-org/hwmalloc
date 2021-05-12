@@ -1,40 +1,30 @@
 #pragma once
 
-#include <hwmalloc/memory_type.hpp>
+#include <hwmalloc/void_ptr.hpp>
 #include <cstddef>
 #include <type_traits>
 
 namespace hwmalloc
 {
-template<typename Context>
-class heap;
-template<typename T, typename Block>
-class hw_ptr;
-
-template<typename Block, typename VoidPtr = void*>
-class hw_void_ptr
+template<typename Block>
+class hw_void_ptr<Block, void const*>
 {
   private:
-    using this_type = hw_void_ptr<Block, VoidPtr>;
-    template<typename Context>
-    friend class heap;
-    friend class hw_void_ptr<Block, void const*>;
+    using this_type = hw_void_ptr<Block, void const*>;
     template<typename T, typename B>
     friend class hw_ptr;
 
   private:
     Block m_data;
 
-  private:
-    constexpr hw_void_ptr(Block const& b) noexcept
-    : m_data{b}
-    {
-    }
-
   public:
     constexpr hw_void_ptr() noexcept {}
-    constexpr hw_void_ptr(hw_void_ptr const&) noexcept = default;
     constexpr hw_void_ptr(std::nullptr_t) noexcept {}
+    constexpr hw_void_ptr(hw_void_ptr const&) noexcept = default;
+    constexpr hw_void_ptr(hw_void_ptr<Block, void*> const& ptr) noexcept
+    : m_data{ptr.m_data}
+    {
+    }
     hw_void_ptr& operator=(hw_void_ptr const&) noexcept = default;
     hw_void_ptr& operator=(std::nullptr_t) noexcept
     {
@@ -53,14 +43,15 @@ class hw_void_ptr
         return (a.m_data.m_ptr != b.m_data.m_ptr);
     }
 
-    constexpr VoidPtr get() const noexcept { return m_data.m_ptr; }
-
-    const auto& handle() noexcept { return m_data.m_handle_cpu; }
+    constexpr void const* get() const noexcept { return m_data.m_ptr; }
 
     constexpr operator bool() const noexcept { return (bool)m_data.m_ptr; }
 
-    template<typename T>
+    template<typename T, typename = std::enable_if_t<std::is_const<T>::value>>
     constexpr explicit operator hw_ptr<T, Block>() const noexcept;
 };
+
+template<typename Block>
+using hw_const_void_ptr = hw_void_ptr<Block, void const*>;
 
 } // namespace hwmalloc
