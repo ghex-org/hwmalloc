@@ -20,14 +20,25 @@ namespace hwmalloc
 bool                  numa_tools::is_initialized_ = false;
 numa_tools::size_type numa_tools::page_size_ = sysconf(_SC_PAGESIZE);
 
+namespace
+{
+bitmask* task_cpu_mask_ptr;
+}
+
 // construct the single instance
 numa_tools::numa_tools() HWMALLOC_NUMA_CONDITIONAL_NOEXCEPT
 {
     // initialize libnuma
     if (numa_available() < 0) HWMALLOC_NUMA_ERROR("could not initialize libnuma");
     else
+    {
+        task_cpu_mask_ptr = numa_allocate_cpumask();
+        numa_sched_getaffinity(0, task_cpu_mask_ptr);
         discover_nodes();
+    }
 }
+
+numa_tools::~numa_tools() noexcept { numa_free_cpumask(task_cpu_mask_ptr); }
 
 // detect host and device nodes
 void

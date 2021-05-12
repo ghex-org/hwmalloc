@@ -46,6 +46,9 @@ class numa_tools
     friend numa_tools make_numa_tools() HWMALLOC_NUMA_CONDITIONAL_NOEXCEPT;
 
   public:
+    ~numa_tools() noexcept;
+
+  public:
     const auto& host_nodes() const noexcept { return m_host_nodes; }
     const auto& device_nodes() const noexcept { return m_device_nodes; }
     const auto& allowed_nodes() const noexcept { return m_allowed_nodes; }

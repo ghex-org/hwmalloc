@@ -25,4 +25,7 @@ endfunction()
 
 #reg_test(unit_tests)
 reg_test(test_numa)
+#reg_test(test_register)
+#reg_test(test_pool)
+reg_test(test_segment)
 
