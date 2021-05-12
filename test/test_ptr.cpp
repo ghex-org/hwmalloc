@@ -1,52 +1,10 @@
 #include <gtest/gtest.h>
-#include <hwmalloc/malloc.hpp>
-#include <hwmalloc/new.hpp>
-#include <hwmalloc/allocator.hpp>
-#include <hwmalloc/stateful_allocator.hpp>
-#include <cstdlib>
+#include <hwmalloc/void_ptr.hpp>
+#include <hwmalloc/const_void_ptr.hpp>
+#include <hwmalloc/ptr.hpp>
+#include <hwmalloc/const_ptr.hpp>
 #include <iostream>
 #include <type_traits>
-#include <vector>
-
-// concepts for VoidPointer
-// --------
-// - NullablePointer
-//   - EqualityComparable
-//   - DefaultConstructible
-//   - CopyConstructible
-//   - CopyAssignable
-//   - Destructible
-
-// concepts for Pointer
-// - NullablePointer
-//   - EqualityComparable
-//   - DefaultConstructible
-//   - CopyConstructible
-//   - CopyAssignable
-//   - Destructible
-// - LegacyRandomAccessIterator
-//   - LegacyBidirectionalIterator
-//     - LegacyForwardIterator
-//       - LegacyInputIterator
-//         - LegacyIterator
-//           - Swappable
-//           - iterator_traits::reference
-//           - iterator_traits::pointer
-//           - iterator_traits::difference_type
-//           - iterator_traits::value_type
-//           - iterator_traits::iterator_category
-//           - *r
-//           - ++r
-//         - i != j
-//         - *i
-//         - i->m
-//       -
-//     - iterator_traits::reference
-//     - --it
-//     - it--
-//     - *a--
-//   -
-// - convertible to VoidPointer
 
 template<typename Ptr>
 void
@@ -101,12 +59,17 @@ check_nullable_pointer()
     }
 }
 
+struct mock_block
+{
+    void* m_ptr = nullptr;
+    int   m_handle_cpu = 0;
+};
+
 TEST(void_ptr, NullablePointer)
 {
     using namespace hwmalloc;
-    constexpr auto M = memory_type::cpu;
-    using void_ptr_t = hw_vptr<M>;
-    using const_void_ptr_t = hw_cvptr<M>;
+    using void_ptr_t = hw_void_ptr<mock_block>;
+    using const_void_ptr_t = hw_const_void_ptr<mock_block>;
 
     check_nullable_pointer<void_ptr_t>();
     check_nullable_pointer<const_void_ptr_t>();
@@ -134,9 +97,8 @@ TEST(void_ptr, NullablePointer)
 TEST(T_ptr, NullablePointer)
 {
     using namespace hwmalloc;
-    constexpr auto M = memory_type::cpu;
-    using T_ptr_t = hw_ptr<int, M>;
-    using const_T_ptr_t = hw_ptr<const int, M>;
+    using T_ptr_t = hw_ptr<int, mock_block>;
+    using const_T_ptr_t = hw_ptr<const int, mock_block>;
 
     check_nullable_pointer<T_ptr_t>();
     check_nullable_pointer<const_T_ptr_t>();
@@ -145,11 +107,10 @@ TEST(T_ptr, NullablePointer)
 TEST(T_ptr, conversions)
 {
     using namespace hwmalloc;
-    constexpr auto M = memory_type::cpu;
-    using void_ptr_t = hw_vptr<M>;
-    using const_void_ptr_t = hw_cvptr<M>;
-    using T_ptr_t = hw_ptr<int, M>;
-    using const_T_ptr_t = hw_ptr<const int, M>;
+    using void_ptr_t = hw_void_ptr<mock_block>;
+    using const_void_ptr_t = hw_const_void_ptr<mock_block>;
+    using T_ptr_t = hw_ptr<int, mock_block>;
+    using const_T_ptr_t = hw_ptr<const int, mock_block>;
 
     void_ptr_t       vptr;
     const_void_ptr_t cvptr;
@@ -193,7 +154,7 @@ TEST(T_ptr, conversions)
     cTptr = (const_T_ptr_t)cvptr;
 }
 
-namespace hwmalloc
+/*namespace hwmalloc
 {
 template<>
 void*
@@ -257,4 +218,4 @@ TEST(stateful_allocator, vector)
 
     for (auto x : vec) std::cout << x << " ";
     std::cout << std::endl;
-}
+}*/
