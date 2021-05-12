@@ -6,14 +6,16 @@
 
 namespace hwmalloc
 {
-template<typename T, memory_type MemoryType>
+template<typename T, typename Block>
 class hw_ptr
 {
   private:
-    friend class hw_vptr<MemoryType, void*>;
-    using this_type = hw_ptr<T, MemoryType>;
-    using void_ptr_t = hw_vptr<MemoryType, void*>;
-    using const_void_ptr_t = hw_vptr<MemoryType, void const*>;
+    friend class hw_void_ptr<Block, void*>;
+    using this_type = hw_ptr<T, Block>;
+    using void_ptr_t = hw_void_ptr<Block, void*>;
+    using const_void_ptr_t = hw_void_ptr<Block, void const*>;
+
+  private:
     void_ptr_t m_ptr;
 
   public: // iteator typedefs
@@ -45,7 +47,7 @@ class hw_ptr
     pointer   operator->() const noexcept { return reinterpret_cast<T*>(m_ptr.get()); }
     pointer   get() const noexcept { return reinterpret_cast<T*>(m_ptr.get()); }
 
-    // pointer to member function
+    // support for pointer to member function
     template<typename R, typename U, typename... Args>
     typename std::enable_if<std::is_same<U, T>::value && std::is_class<U>::value,
         const pmfc<R (U::*)(Args...)>>::type
@@ -53,6 +55,8 @@ class hw_ptr
     {
         return {get(), pmf};
     }
+
+    // support for pointer to const member function
     template<typename R, typename U, typename... Args>
     typename std::enable_if<std::is_same<U, T>::value && std::is_class<U>::value,
         const pmfc<R (U::*)(Args...) const>>::type
@@ -60,7 +64,8 @@ class hw_ptr
     {
         return {get(), pmf};
     }
-    // pointer to member
+
+    // support for pointer to member
     template<typename M, typename U>
     typename std::enable_if<std::is_same<U, T>::value && std::is_class<U>::value, M&>::type
     operator->*(M U::*pm) const noexcept
@@ -77,51 +82,56 @@ class hw_ptr
   public: // iterator functions
     this_type& operator++() noexcept
     {
-        m_ptr.set(get() + 1);
+        m_ptr.m_data.m_ptr = get() + 1;
         return *this;
     }
+
     this_type operator++(int) noexcept
     {
         auto tmp = *this;
-        m_ptr.set(get() + 1);
+        m_ptr.m_data.m_ptr = get() + 1;
         return tmp;
     }
-    this_type& operator+=(std::size_t n) noexcept
+
+    this_type& operator+=(std::ptrdiff_t n) noexcept
     {
-        m_ptr.set(get() + n);
+        m_ptr.m_data.m_ptr = get() + n;
         return *this;
     }
+
     friend this_type operator+(this_type a, std::size_t n) noexcept { return (a += n); }
 
     reference& operator[](std::size_t n) const noexcept { return *(get() + n); }
 };
 
-template<memory_type MemoryType, typename VoidPtr>
+template<typename Block, typename VoidPtr>
 template<typename T>
-constexpr hw_vptr<MemoryType, VoidPtr>&
-hw_vptr<MemoryType, VoidPtr>::operator=(hw_ptr<T, MemoryType> const& ptr) noexcept
+constexpr hw_void_ptr<Block, VoidPtr>&
+hw_void_ptr<Block, VoidPtr>::operator=(hw_ptr<T, Block> const& ptr) noexcept
 {
-    return *this = (this_type)ptr;
+    return (*this = (this_type)ptr);
 }
 
-template<memory_type MemoryType, class VoidPtr>
+template<typename Block, class VoidPtr>
 template<class T>
-constexpr hw_vptr<MemoryType, VoidPtr>::operator hw_ptr<T, MemoryType>() const noexcept
+constexpr hw_void_ptr<Block, VoidPtr>::operator hw_ptr<T, Block>() const noexcept
 {
-    auto p = hw_ptr<T, MemoryType>();
+    auto p = hw_ptr<T, Block>();
     p.m_ptr = *this;
     return p;
 }
 
-template<typename T, memory_type MemoryType>
-class hw_ptr<const T, MemoryType>
+template<typename T, typename Block>
+class hw_ptr<const T, Block>
 {
   private:
-    friend class hw_vptr<MemoryType, void*>;
-    friend class hw_vptr<MemoryType, void const*>;
-    using this_type = hw_ptr<const T, MemoryType>;
-    using void_ptr_t = hw_vptr<MemoryType, void*>;
-    using const_void_ptr_t = hw_vptr<MemoryType, void const*>;
+    friend class hw_void_ptr<Block, void*>;
+    friend class hw_void_ptr<Block, void const*>;
+    using this_type = hw_ptr<const T, Block>;
+    using void_ptr_t = hw_void_ptr<Block, void*>;
+    using const_void_ptr_t = hw_void_ptr<Block, void const*>;
+
+  private:
     const_void_ptr_t m_ptr;
 
   public: // iteator typedefs
@@ -134,7 +144,7 @@ class hw_ptr<const T, MemoryType>
   public:
     constexpr hw_ptr() noexcept = default;
     constexpr hw_ptr(hw_ptr const&) noexcept = default;
-    constexpr hw_ptr(hw_ptr<T, MemoryType> const& ptr) noexcept
+    constexpr hw_ptr(hw_ptr<T, Block> const& ptr) noexcept
     : m_ptr((void_ptr_t)ptr)
     {
     }
@@ -161,29 +171,30 @@ class hw_ptr<const T, MemoryType>
     constexpr          operator bool() const noexcept { return (bool)m_ptr; }
 };
 
-template<memory_type MemoryType>
+template<typename Block>
 template<typename T>
-constexpr hw_vptr<MemoryType, void const*>&
-hw_vptr<MemoryType, void const*>::operator=(hw_ptr<T, MemoryType> const& ptr) noexcept
+constexpr hw_void_ptr<Block, void const*>&
+hw_void_ptr<Block, void const*>::operator=(hw_ptr<T, Block> const& ptr) noexcept
 {
     return *this = (this_type)ptr;
 }
 
-template<memory_type MemoryType>
+template<typename Block>
 template<class T, typename>
-constexpr hw_vptr<MemoryType, void const*>::operator hw_ptr<T, MemoryType>() const noexcept
+constexpr hw_void_ptr<Block, void const*>::operator hw_ptr<T, Block>() const noexcept
 {
-    auto p = hw_ptr<T, MemoryType>();
+    auto p = hw_ptr<T, Block>();
     p.m_ptr = *this;
     return p;
 }
 
-template<memory_type MemoryType>
-class hw_ptr<void, MemoryType>
+// These classes are not implemented by design. See void_ptr.hpp for implemenation of void pointers.
+template<typename Block>
+class hw_ptr<void, Block>
 {
 };
-template<memory_type MemoryType>
-class hw_ptr<void const, MemoryType>
+template<typename Block>
+class hw_ptr<void const, Block>
 {
 };
 

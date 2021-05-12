@@ -1,6 +1,7 @@
 #pragma once
 
 #include <hwmalloc/detail/fixed_size_heap.hpp>
+#include <hwmalloc/void_ptr.hpp>
 #include <vector>
 #include <unordered_map>
 
@@ -14,6 +15,8 @@ class heap
     using block_type = typename fixed_size_heap_type::block_type;
     using heap_vector = std::vector<std::unique_ptr<fixed_size_heap_type>>;
     using heap_map = std::unordered_map<std::size_t, std::unique_ptr<fixed_size_heap_type>>;
+    using pointer = hw_void_ptr<block_type>;
+    using const_pointer = hw_const_void_ptr<block_type>;
 
     // There are 5 size classes that the heap uses. For each size class it relies on a
     // fixed_size_heap. The size classes are:
@@ -128,11 +131,11 @@ class heap
                     (s_large_limit << (i + 1)), m_never_free);
     }
 
-    block_type allocate(std::size_t size, std::size_t numa_node)
+    pointer allocate(std::size_t size, std::size_t numa_node)
     {
-        if (size <= s_tiny_limit) return m_tiny_heaps[tiny_bucket_index(size)]->allocate(numa_node);
+        if (size <= s_tiny_limit) return {m_tiny_heaps[tiny_bucket_index(size)]->allocate(numa_node)};
         else if (size <= m_max_size)
-            return m_heaps[bucket_index(size)]->allocate(numa_node);
+            return {m_heaps[bucket_index(size)]->allocate(numa_node)};
         else
         {
             fixed_size_heap_type* h;
@@ -144,48 +147,45 @@ class heap
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free);
                 h = u_ptr.get();
             }
-            return h->allocate(numa_node);
+            return {h->allocate(numa_node)};
         }
     }
 
-    void free(block_type const& b) { b.release(); }
-
-    auto allocate_unique(std::size_t size, std::size_t numa_node)
+    template<typename VoidPtr>
+    void free(hw_void_ptr<block_type,VoidPtr> const & ptr)
     {
-        struct unique_block : public block_type
-        {
-            unique_block() noexcept = default;
-            unique_block(block_type&& b) noexcept
-            : block_type(std::move(b))
-            {}
-            unique_block(unique_block const &) noexcept = delete;
-            unique_block& operator=(unique_block const &) noexcept = delete;
-            unique_block(unique_block&& other) noexcept
-            : block_type(std::move(other))
-            {
-                other.m_ptr=nullptr;
-            }
-            unique_block& operator=(unique_block&& other) noexcept
-            {
-                static_cast<block_type&>(*this) = static_cast<block_type&&>(other);
-                other.m_ptr=nullptr;
-                return *this;
-            }
-            ~unique_block()
-            {
-                if (this->m_ptr)
-                    this->release();
-            }
-        };
-        return unique_block(allocate(size, numa_node));
+        ptr.m_data.release();
     }
-};
 
-template<typename Context>
-void
-free(typename detail::segment<Context>::block const& b) noexcept
-{
-    b.release();
-}
+    //auto allocate_unique(std::size_t size, std::size_t numa_node)
+    //{
+    //    struct unique_block : public block_type
+    //    {
+    //        unique_block() noexcept = default;
+    //        unique_block(block_type&& b) noexcept
+    //        : block_type(std::move(b))
+    //        {}
+    //        unique_block(unique_block const &) noexcept = delete;
+    //        unique_block& operator=(unique_block const &) noexcept = delete;
+    //        unique_block(unique_block&& other) noexcept
+    //        : block_type(std::move(other))
+    //        {
+    //            other.m_ptr=nullptr;
+    //        }
+    //        unique_block& operator=(unique_block&& other) noexcept
+    //        {
+    //            static_cast<block_type&>(*this) = static_cast<block_type&&>(other);
+    //            other.m_ptr=nullptr;
+    //            return *this;
+    //        }
+    //        ~unique_block()
+    //        {
+    //            if (this->m_ptr)
+    //                this->release();
+    //        }
+    //    };
+    //    return unique_block(allocate(size, numa_node));
+    //}
+};
 
 } // namespace hwmalloc

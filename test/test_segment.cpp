@@ -4,7 +4,6 @@
 #include <hwmalloc/detail/pool.hpp>
 #include <hwmalloc/detail/fixed_size_heap.hpp>
 #include <hwmalloc/heap.hpp>
-//#include <hwmalloc/thread_id.hpp>
 
 #include <thread>
 
@@ -137,12 +136,12 @@ TEST(heap, construction)
 
     heap_t h(&c);
 
-    auto b = h.allocate(1, 0);
-    std::cout << b.m_ptr << std::endl;
-    h.free(b);
+    auto ptr = h.allocate(1, 0);
+    std::cout << ptr.get() << std::endl;
+    h.free(ptr);
 
-    {
-    auto ub = h.allocate_unique(65536, 0);
-    }
-    std::cout << "after unique ptr destructor" << std::endl;
+    //{
+    //auto ub = h.allocate_unique(65536, 0);
+    //}
+    //std::cout << "after unique ptr destructor" << std::endl;
 }

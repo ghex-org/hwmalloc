@@ -6,119 +6,109 @@
 
 namespace hwmalloc
 {
-namespace detail
-{
-class pool;
-} // namespace detail
-
-template<typename T, memory_type MemoryType>
+template<typename Context>
+class heap;
+template<typename T, typename Block>
 class hw_ptr;
 
-template<memory_type MemoryType, typename VoidPtr = void*>
-class hw_vptr
+template<typename Block, typename VoidPtr = void*>
+class hw_void_ptr
 {
-  public:
-    static constexpr memory_type type = MemoryType;
+  private:
+    using this_type = hw_void_ptr<Block, VoidPtr>;
+    template<typename Context>
+    friend class heap;
+    friend class hw_void_ptr<Block, void const*>;
+    template<typename T, typename B>
+    friend class hw_ptr;
 
   private:
-    using this_type = hw_vptr<MemoryType, VoidPtr>;
-    friend class detail::pool;
-    friend class hw_vptr<MemoryType, void const*>;
+    Block m_data;
 
   private:
-    VoidPtr m_data = nullptr;
-    int     m_memory_domain = -1;
-
-  private:
-    constexpr hw_vptr(void* data, int memory_domain) noexcept
-    : m_data{data}
-    , m_memory_domain{memory_domain}
+    constexpr hw_void_ptr(Block const& b) noexcept
+    : m_data{b}
     {
     }
 
   public:
-    constexpr hw_vptr() noexcept {}
-    constexpr hw_vptr(hw_vptr const&) noexcept = default;
-    constexpr hw_vptr(std::nullptr_t) noexcept {}
-    hw_vptr& operator=(hw_vptr const&) noexcept = default;
-    hw_vptr& operator=(std::nullptr_t) noexcept
+    constexpr hw_void_ptr() noexcept {}
+    constexpr hw_void_ptr(hw_void_ptr const&) noexcept = default;
+    constexpr hw_void_ptr(std::nullptr_t) noexcept {}
+    hw_void_ptr& operator=(hw_void_ptr const&) noexcept = default;
+    hw_void_ptr& operator=(std::nullptr_t) noexcept
     {
-        m_data = nullptr;
-        m_memory_domain = -1;
+        m_data.m_ptr = nullptr;
         return *this;
     }
     template<typename T>
-    constexpr hw_vptr& operator=(hw_ptr<T, MemoryType> const& ptr) noexcept;
+    constexpr hw_void_ptr& operator=(hw_ptr<T, Block> const& ptr) noexcept;
 
-    constexpr friend bool operator==(hw_vptr a, hw_vptr b) noexcept
+    constexpr friend bool operator==(hw_void_ptr a, hw_void_ptr b) noexcept
     {
-        return (a.m_data == b.m_data);
+        return (a.m_data.m_ptr == b.m_data.m_ptr);
     }
-    constexpr friend bool operator!=(hw_vptr a, hw_vptr b) noexcept
+    constexpr friend bool operator!=(hw_void_ptr a, hw_void_ptr b) noexcept
     {
-        return (a.m_data != b.m_data);
+        return (a.m_data.m_ptr != b.m_data.m_ptr);
     }
 
-    constexpr VoidPtr get() const noexcept { return m_data; }
-    void              set(VoidPtr ptr) noexcept { m_data = ptr; }
+    constexpr VoidPtr get() const noexcept { return m_data.m_ptr; }
 
-    constexpr operator bool() const noexcept { return (bool)m_data; }
+    const auto& handle() noexcept { return m_data.m_handle_cpu; }
+
+    constexpr operator bool() const noexcept { return (bool)m_data.m_ptr; }
 
     template<typename T>
-    constexpr explicit operator hw_ptr<T, MemoryType>() const noexcept;
+    constexpr explicit operator hw_ptr<T, Block>() const noexcept;
 };
 
-template<memory_type MemoryType>
-class hw_vptr<MemoryType, void const*>
+template<typename Block>
+class hw_void_ptr<Block, void const*>
 {
-  public:
-    static constexpr memory_type type = MemoryType;
+  private:
+    using this_type = hw_void_ptr<Block, void const*>;
+    template<typename T, typename B>
+    friend class hw_ptr;
 
   private:
-    using this_type = hw_vptr<MemoryType, void const*>;
-
-  private:
-    void const* m_data = nullptr;
-    int         m_memory_domain = -1;
+    Block m_data;
 
   public:
-    constexpr hw_vptr() noexcept {}
-    constexpr hw_vptr(std::nullptr_t) noexcept {}
-    constexpr hw_vptr(hw_vptr const&) noexcept = default;
-    constexpr hw_vptr(hw_vptr<MemoryType, void*> const& ptr) noexcept
+    constexpr hw_void_ptr() noexcept {}
+    constexpr hw_void_ptr(std::nullptr_t) noexcept {}
+    constexpr hw_void_ptr(hw_void_ptr const&) noexcept = default;
+    constexpr hw_void_ptr(hw_void_ptr<Block, void*> const& ptr) noexcept
     : m_data{ptr.m_data}
-    , m_memory_domain{ptr.m_memory_domain}
     {
     }
-    hw_vptr& operator=(hw_vptr const&) noexcept = default;
-    hw_vptr& operator=(std::nullptr_t) noexcept
+    hw_void_ptr& operator=(hw_void_ptr const&) noexcept = default;
+    hw_void_ptr& operator=(std::nullptr_t) noexcept
     {
-        m_data = nullptr;
-        m_memory_domain = -1;
+        m_data.m_ptr = nullptr;
         return *this;
     }
     template<typename T>
-    constexpr hw_vptr& operator=(hw_ptr<T, MemoryType> const& ptr) noexcept;
+    constexpr hw_void_ptr& operator=(hw_ptr<T, Block> const& ptr) noexcept;
 
-    constexpr friend bool operator==(hw_vptr a, hw_vptr b) noexcept
+    constexpr friend bool operator==(hw_void_ptr a, hw_void_ptr b) noexcept
     {
-        return (a.m_data == b.m_data);
+        return (a.m_data.m_ptr == b.m_data.m_ptr);
     }
-    constexpr friend bool operator!=(hw_vptr a, hw_vptr b) noexcept
+    constexpr friend bool operator!=(hw_void_ptr a, hw_void_ptr b) noexcept
     {
-        return (a.m_data != b.m_data);
+        return (a.m_data.m_ptr != b.m_data.m_ptr);
     }
 
-    constexpr void const* get() const noexcept { return m_data; }
-    void                  set(void const* ptr) noexcept { m_data = ptr; }
+    constexpr void const* get() const noexcept { return m_data.m_ptr; }
 
-    constexpr operator bool() const noexcept { return (bool)m_data; }
+    constexpr operator bool() const noexcept { return (bool)m_data.m_ptr; }
 
     template<typename T, typename = std::enable_if_t<std::is_const<T>::value>>
-    constexpr explicit operator hw_ptr<T, MemoryType>() const noexcept;
+    constexpr explicit operator hw_ptr<T, Block>() const noexcept;
 };
 
-template<memory_type MemoryType>
-using hw_cvptr = hw_vptr<MemoryType, void const*>;
+template<typename Block>
+using hw_const_void_ptr = hw_void_ptr<Block, void const*>;
 
 } // namespace hwmalloc
