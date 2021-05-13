@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14.5)
+cmake_minimum_required(VERSION 3.17)
 project(hwmalloc LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -30,6 +30,11 @@ target_include_directories(hwmalloc PUBLIC
     $<INSTALL_INTERFACE:include>)
 
 set(TESTING OFF CACHE BOOL "True if tests shall be built")
+
+set(HWMALLOC_ENABLE_DEVICE OFF CACHE BOOL "True if GPU support shall be enabled")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.hpp.in
+    ${CMAKE_CURRENT_BINARY_DIR}/include/hwmalloc/config.hpp @ONLY)
 
 add_subdirectory(src)
 
