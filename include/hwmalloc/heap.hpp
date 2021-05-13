@@ -10,6 +10,20 @@
 
 namespace hwmalloc
 {
+// Main class of this library. Provides a heap for allocating memory on given numa nodes and
+// devices. The memory is requested from the OS/runtime in large segments which are kept alive.
+// After allocation of these segments, the memory is given to the Context for registering with e.g.
+// a network transport layer. This is achieved through customization point objects( see register.hpp
+// and register_device.hpp).
+//
+// This class is thread safe. The requested memory is returned in form of fancy pointers which store
+// additional information about the chunk of memory (segment) from which they originated and provide
+// access to potential RMA keys that the network layer generates during registering.
+//
+// If device (gpu) memory is requested, space will be allocated on both the device and the host
+// (effectively mirroring the memory). Both memory regions are passed to the Context for
+// registration. Note, that setting a numa node for device memory allocation is therefore still
+// necessary.
 template<typename Context>
 class heap
 {
@@ -34,6 +48,7 @@ class heap
     // - Huge:  heaps with exponentially increasing block sizes, each heap backed by segments of
     //          size = block size. These heaps can use arbitrary large block sizes and are stored
     //          in a map (created on demand). Access is synchronized among threads using a mutex.
+    //          TODO: can this be made more efficient?
     //
     //     block  segment / pages / h / hex      blocks/segment
     //   ------------------------------------------------------ tiny
