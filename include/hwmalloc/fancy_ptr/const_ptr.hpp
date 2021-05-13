@@ -49,6 +49,9 @@ class hw_ptr<const T, Block>
     reference operator*() const noexcept { return *reinterpret_cast<T const*>(m_ptr.get()); }
     pointer   operator->() const noexcept { return reinterpret_cast<T const*>(m_ptr.get()); }
     pointer   get() const noexcept { return reinterpret_cast<T const*>(m_ptr.get()); }
+#if HWMALLOC_ENABLE_DEVICE
+    pointer device_ptr() const noexcept { return reinterpret_cast<T const*>(m_ptr.device_ptr()); }
+#endif
 
     // support for pointer to const member function
     template<typename R, typename U, typename... Args>
@@ -74,6 +77,9 @@ class hw_ptr<const T, Block>
     this_type& operator++() noexcept
     {
         m_ptr.m_data.m_ptr = get() + 1;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() + 1;
+#endif
         return *this;
     }
 
@@ -81,12 +87,18 @@ class hw_ptr<const T, Block>
     {
         auto tmp = *this;
         m_ptr.m_data.m_ptr = get() + 1;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() + 1;
+#endif
         return tmp;
     }
 
     this_type& operator+=(std::ptrdiff_t n) noexcept
     {
         m_ptr.m_data.m_ptr = get() + n;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() + n;
+#endif
         return *this;
     }
 
@@ -95,6 +107,9 @@ class hw_ptr<const T, Block>
     this_type& operator--() noexcept
     {
         m_ptr.m_data.m_ptr = get() - 1;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() - 1;
+#endif
         return *this;
     }
 
@@ -102,12 +117,18 @@ class hw_ptr<const T, Block>
     {
         auto tmp = *this;
         m_ptr.m_data.m_ptr = get() - 1;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() - 1;
+#endif
         return tmp;
     }
 
     this_type& operator-=(std::ptrdiff_t n) noexcept
     {
         m_ptr.m_data.m_ptr = get() - n;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() - n;
+#endif
         return *this;
     }
 

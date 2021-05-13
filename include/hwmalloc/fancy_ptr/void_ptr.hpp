@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hwmalloc/memory_type.hpp>
+#include <hwmalloc/config.hpp>
 #include <cstddef>
 #include <type_traits>
 
@@ -54,6 +54,10 @@ class hw_void_ptr
     }
 
     constexpr VoidPtr get() const noexcept { return m_data.m_ptr; }
+
+#if HWMALLOC_ENABLE_DEVICE
+    constexpr VoidPtr device_ptr() const noexcept { return m_data.m_device_ptr; }
+#endif
 
     const auto& handle() noexcept { return m_data.m_handle_cpu; }
 

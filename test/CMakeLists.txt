@@ -1,5 +1,4 @@
 enable_testing()
-#include(CTest)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -25,7 +24,8 @@ endfunction()
 
 reg_test(test_numa)
 reg_test(test_ptr)
-#reg_test(test_register)
-#reg_test(test_pool)
 reg_test(test_segment)
 
+if (HWMALLOC_ENABLE_DEVICE)
+reg_test(test_device)
+endif()

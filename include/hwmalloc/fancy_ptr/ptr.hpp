@@ -47,6 +47,9 @@ class hw_ptr
     reference operator*() const noexcept { return *reinterpret_cast<T*>(m_ptr.get()); }
     pointer   operator->() const noexcept { return reinterpret_cast<T*>(m_ptr.get()); }
     pointer   get() const noexcept { return reinterpret_cast<T*>(m_ptr.get()); }
+#if HWMALLOC_ENABLE_DEVICE
+    pointer device_ptr() const noexcept { return reinterpret_cast<T*>(m_ptr.device_ptr()); }
+#endif
 
     // support for pointer to member function
     template<typename R, typename U, typename... Args>
@@ -84,6 +87,9 @@ class hw_ptr
     this_type& operator++() noexcept
     {
         m_ptr.m_data.m_ptr = get() + 1;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() + 1;
+#endif
         return *this;
     }
 
@@ -91,12 +97,18 @@ class hw_ptr
     {
         auto tmp = *this;
         m_ptr.m_data.m_ptr = get() + 1;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() + 1;
+#endif
         return tmp;
     }
 
     this_type& operator+=(std::ptrdiff_t n) noexcept
     {
         m_ptr.m_data.m_ptr = get() + n;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() + n;
+#endif
         return *this;
     }
 
@@ -105,6 +117,9 @@ class hw_ptr
     this_type& operator--() noexcept
     {
         m_ptr.m_data.m_ptr = get() - 1;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() - 1;
+#endif
         return *this;
     }
 
@@ -112,19 +127,27 @@ class hw_ptr
     {
         auto tmp = *this;
         m_ptr.m_data.m_ptr = get() - 1;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() - 1;
+#endif
         return tmp;
     }
 
     this_type& operator-=(std::ptrdiff_t n) noexcept
     {
         m_ptr.m_data.m_ptr = get() - n;
+#if HWMALLOC_ENABLE_DEVICE
+        if (m_ptr.device_ptr()) m_ptr.m_data.m_device_ptr = device_ptr() - n;
+#endif
         return *this;
     }
 
     friend this_type operator-(this_type a, std::size_t n) noexcept { return (a -= n); }
 
-    friend difference_type operator-(this_type const & a, this_type const & b) noexcept 
-    { return ( a.get() - b.get() ); }
+    friend difference_type operator-(this_type const& a, this_type const& b) noexcept
+    {
+        return (a.get() - b.get());
+    }
 
     reference& operator[](std::size_t n) const noexcept { return *(get() + n); }
 };

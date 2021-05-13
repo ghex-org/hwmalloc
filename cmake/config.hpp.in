@@ -1,0 +1,5 @@
+#pragma once
+
+
+#cmakedefine01 HWMALLOC_ENABLE_DEVICE
+

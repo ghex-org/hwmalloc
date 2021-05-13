@@ -160,6 +160,29 @@ class heap
         }
     }
 
+#if HWMALLOC_ENABLE_DEVICE
+    pointer allocate(std::size_t size, std::size_t numa_node, int device_id)
+    {
+        if (size <= s_tiny_limit)
+            return {m_tiny_heaps[tiny_bucket_index(size)]->allocate(numa_node,device_id)};
+        else if (size <= m_max_size)
+            return {m_heaps[bucket_index(size)]->allocate(numa_node,device_id)};
+        else
+        {
+            fixed_size_heap_type* h;
+            {
+                std::lock_guard<std::mutex> lock(m_mutex);
+                const auto                  s = round_to_pow_of_2(size);
+                auto&                       u_ptr = m_huge_heaps[s];
+                if (!u_ptr)
+                    u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free);
+                h = u_ptr.get();
+            }
+            return {h->allocate(numa_node,device_id)};
+        }
+    }
+#endif
+
     template<typename VoidPtr>
     void free(hw_void_ptr<block_type, VoidPtr> const& ptr)
     {
@@ -202,5 +225,30 @@ class heap
     //    return unique_block(allocate(size, numa_node));
     //}
 };
+
+template<typename Context>
+constexpr std::size_t heap<Context>::s_tiny_limit;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_small_limit;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_large_limit;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_bucket_shift;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_tiny_segment;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_small_segment;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_large_segment;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_tiny_increment_shift;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_tiny_increment;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_num_tiny_heaps;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_num_small_heaps;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_num_large_heaps;
 
 } // namespace hwmalloc

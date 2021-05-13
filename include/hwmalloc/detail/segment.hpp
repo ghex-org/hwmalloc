@@ -1,7 +1,10 @@
 #pragma once
 
+#include <hwmalloc/detail/region_traits.hpp>
 #include <hwmalloc/numa.hpp>
-#include <hwmalloc/register.hpp>
+#if HWMALLOC_ENABLE_DEVICE
+#include <hwmalloc/device.hpp>
+#endif
 #include <type_traits>
 #include <boost/lockfree/stack.hpp>
 #include <atomic>
@@ -18,25 +21,23 @@ class segment
 {
   public:
     using pool_type = pool<Context>;
-
-    using region_type_cpu = decltype(hwmalloc::register_memory(*((Context*)0), nullptr, 0, cpu));
-    static_assert(
-        !std::is_copy_constructible<region_type_cpu>::value, "region is copy constructible");
-    static_assert(
-        std::is_move_constructible<region_type_cpu>::value, "region is not move constructible");
-
-    using handle_type_cpu = typename region_type_cpu::handle_type;
-    static_assert(std::is_default_constructible<handle_type_cpu>::value,
-        "handle is not default constructible");
-    static_assert(
-        std::is_copy_constructible<handle_type_cpu>::value, "handle is not copy constructible");
-    static_assert(std::is_copy_assignable<handle_type_cpu>::value, "handle is not copy assignable");
+    using region_traits_type = region_traits<Context>;
+    using region_type = typename region_traits_type::region_type;
+    using handle_type = typename region_traits_type::handle_type;
+#if HWMALLOC_ENABLE_DEVICE
+    using device_region_type = typename region_traits_type::device_region_type;
+    using device_handle_type = typename region_traits_type::device_handle_type;
+#endif
 
     struct block
     {
-        segment*        m_segment = nullptr;
-        void*           m_ptr = nullptr;
-        handle_type_cpu m_handle_cpu;
+        segment*    m_segment = nullptr;
+        void*       m_ptr = nullptr;
+        handle_type m_handle;
+#if HWMALLOC_ENABLE_DEVICE
+        void*              m_device_ptr = nullptr;
+        device_handle_type m_device_handle = device_handle_type();
+#endif
 
         void release() const noexcept { m_segment->get_pool()->free(*this); }
     };
@@ -51,6 +52,17 @@ class segment
         }
     };
 
+#if HWMALLOC_ENABLE_DEVICE
+    struct device_allocation_holder
+    {
+        void* m = nullptr;
+        ~device_allocation_holder() noexcept
+        {
+            if (m) device_free(m);
+        }
+    };
+#endif
+
   private:
     using stack_type = boost::lockfree::stack<block, boost::lockfree::fixed_sized<true>>;
 
@@ -58,19 +70,23 @@ class segment
     std::size_t       m_block_size;
     std::size_t       m_num_blocks;
     allocation_holder m_allocation;
-    region_type_cpu   m_region_cpu;
+    region_type       m_region;
+#if HWMALLOC_ENABLE_DEVICE
+    device_allocation_holder            m_device_allocation;
+    std::unique_ptr<device_region_type> m_device_region;
+#endif
     stack_type        m_freed_stack;
     std::atomic<long> m_num_freed;
 
   public:
     template<typename Stack>
-    segment(pool_type* pool, region_type_cpu&& region, numa_tools::allocation alloc,
+    segment(pool_type* pool, region_type&& region, numa_tools::allocation alloc,
         std::size_t block_size, Stack& free_stack)
     : m_pool{pool}
     , m_block_size{block_size}
     , m_num_blocks{alloc.size / block_size}
     , m_allocation{alloc}
-    , m_region_cpu{std::move(region)}
+    , m_region{std::move(region)}
     , m_freed_stack(m_num_blocks)
     , m_num_freed(0)
     {
@@ -78,18 +94,43 @@ class segment
         for (std::size_t i = m_num_blocks; i > 0; --i)
         {
             block b{this, origin + (i - 1) * block_size,
-                m_region_cpu.get_handle((i - 1) * block_size, block_size)};
+                m_region.get_handle((i - 1) * block_size, block_size)};
             while (!free_stack.push(b)) {}
         }
     }
 
+#if HWMALLOC_ENABLE_DEVICE
+    template<typename Stack>
+    segment(pool_type* pool, region_type&& region, numa_tools::allocation alloc,
+        device_region_type&& device_region, void* device_ptr, std::size_t block_size,
+        Stack& free_stack)
+    : m_pool{pool}
+    , m_block_size{block_size}
+    , m_num_blocks{alloc.size / block_size}
+    , m_allocation{alloc}
+    , m_region{std::move(region)}
+    , m_device_allocation{device_ptr}
+    , m_device_region{new device_region_type(std::move(device_region))}
+    , m_freed_stack(m_num_blocks)
+    , m_num_freed(0)
+    {
+        char* origin = (char*)m_allocation.m.ptr;
+        char* device_origin = (char*)m_device_allocation.m;
+        for (std::size_t i = m_num_blocks; i > 0; --i)
+        {
+            block b{this, origin + (i - 1) * block_size,
+                m_region.get_handle((i - 1) * block_size, block_size),
+                device_origin + (i - 1) * block_size,
+                m_device_region->get_handle((i - 1) * block_size, block_size)};
+            while (!free_stack.push(b)) {}
+        }
+    }
+#endif
+
     segment(segment const&) = delete;
     segment(segment&&) = delete;
 
-    ~segment() noexcept
-    {
-        std::cout << "segment destructor" << std::endl;
-    }
+    ~segment() noexcept { std::cout << "segment destructor" << std::endl; }
 
     std::size_t block_size() const noexcept { return m_block_size; }
     std::size_t capacity() const noexcept { return m_num_blocks; }
