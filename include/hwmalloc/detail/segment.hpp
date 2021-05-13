@@ -45,11 +45,7 @@ class segment
     struct allocation_holder
     {
         numa_tools::allocation m;
-        ~allocation_holder() noexcept
-        {
-            std::cout << "  allocation destructor" << std::endl;
-            hwmalloc::numa().free(m);
-        }
+        ~allocation_holder() noexcept { hwmalloc::numa().free(m); }
     };
 
 #if HWMALLOC_ENABLE_DEVICE
@@ -130,8 +126,6 @@ class segment
     segment(segment const&) = delete;
     segment(segment&&) = delete;
 
-    ~segment() noexcept { std::cout << "segment destructor" << std::endl; }
-
     std::size_t block_size() const noexcept { return m_block_size; }
     std::size_t capacity() const noexcept { return m_num_blocks; }
     std::size_t numa_node() const noexcept { return m_allocation.m.node; }
@@ -145,7 +139,6 @@ class segment
     template<typename Stack>
     std::size_t collect(Stack& stack)
     {
-        std::cout << "collecting" << std::endl;
         const auto consumed = m_freed_stack.consume_all([&stack](block const& b) {
             while (!stack.push(b)) {}
         });

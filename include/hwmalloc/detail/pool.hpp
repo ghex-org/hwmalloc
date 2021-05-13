@@ -51,7 +51,6 @@ class pool
 
     void add_segment()
     {
-        std::cout << "adding segment" << std::endl;
         auto a =
             check_allocation(numa().allocate(num_pages(m_segment_size), m_numa_node), m_numa_node);
 #if HWMALLOC_ENABLE_DEVICE
@@ -124,13 +123,8 @@ class pool
         b.m_segment->free(b);
         if (!m_never_free && b.m_segment->is_empty())
         {
-            std::cout << "segment is empty" << std::endl;
             std::lock_guard<std::mutex> lock(m_mutex);
-            if (b.m_segment->is_empty() /*&& m_segments.size()>0*/)
-            {
-                std::cout << "releasing segment" << std::endl;
-                m_segments[b.m_segment].reset();
-            }
+            if (b.m_segment->is_empty() /*&& m_segments.size()>0*/) m_segments[b.m_segment].reset();
         }
     }
 };
