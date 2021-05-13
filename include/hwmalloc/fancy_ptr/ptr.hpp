@@ -150,6 +150,11 @@ class hw_ptr
     }
 
     reference& operator[](std::size_t n) const noexcept { return *(get() + n); }
+
+    void release()
+    {
+        m_ptr.m_data.release();
+    }
 };
 
 template<typename Block, typename VoidPtr>

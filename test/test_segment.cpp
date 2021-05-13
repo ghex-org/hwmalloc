@@ -139,10 +139,14 @@ TEST(heap, construction)
     std::cout << ptr.get() << std::endl;
     h.free(ptr);
 
-    //{
-    //auto ub = h.allocate_unique(65536, 0);
-    //}
-    //std::cout << "after unique ptr destructor" << std::endl;
+    {
+        auto u_ptr = h.make_unique<double>(0, 42.0);
+    }
+    {
+        auto u_arr = h.make_unique<double[]>(0, 100);
+        for (unsigned int i=0; i<100; ++i)
+        std::cout << u_arr[i] << std::endl;
+    }
 }
 
 TEST(heap, allocator)

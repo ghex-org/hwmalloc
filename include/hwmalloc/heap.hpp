@@ -3,6 +3,7 @@
 #include <hwmalloc/detail/fixed_size_heap.hpp>
 #include <hwmalloc/fancy_ptr/void_ptr.hpp>
 #include <hwmalloc/fancy_ptr/const_void_ptr.hpp>
+#include <hwmalloc/fancy_ptr/unique_ptr.hpp>
 #include <hwmalloc/allocator.hpp>
 #include <vector>
 #include <unordered_map>
@@ -164,9 +165,9 @@ class heap
     pointer allocate(std::size_t size, std::size_t numa_node, int device_id)
     {
         if (size <= s_tiny_limit)
-            return {m_tiny_heaps[tiny_bucket_index(size)]->allocate(numa_node,device_id)};
+            return {m_tiny_heaps[tiny_bucket_index(size)]->allocate(numa_node, device_id)};
         else if (size <= m_max_size)
-            return {m_heaps[bucket_index(size)]->allocate(numa_node,device_id)};
+            return {m_heaps[bucket_index(size)]->allocate(numa_node, device_id)};
         else
         {
             fixed_size_heap_type* h;
@@ -178,7 +179,7 @@ class heap
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free);
                 h = u_ptr.get();
             }
-            return {h->allocate(numa_node,device_id)};
+            return {h->allocate(numa_node, device_id)};
         }
     }
 #endif
@@ -193,6 +194,28 @@ class heap
     allocator_type<T> get_allocator(std::size_t numa_node) noexcept
     {
         return {this, numa_node};
+    }
+
+    // scalar version
+    template<typename T, typename... Args>
+    std::enable_if_t<!std::is_array<T>::value, unique_ptr<T, block_type>> make_unique(
+        std::size_t numa_node, Args&&... args)
+    {
+        auto ptr = allocate(sizeof(T), numa_node);
+        new (ptr.get()) T(std::forward<Args>(args)...);
+        return unique_ptr<T, block_type>(static_cast<hw_ptr<T, block_type>>(ptr));
+    }
+
+    // array version
+    template<typename T>
+    std::enable_if_t<std::is_array<T>::value, unique_ptr<T, block_type>> make_unique(
+        std::size_t numa_node, std::size_t size)
+    {
+        using U = typename std::remove_extent<T>::type;
+        auto ptr = allocate(sizeof(U) * size, numa_node);
+        new (ptr.get()) U[size]();
+        return unique_ptr<T, block_type>(
+            static_cast<hw_ptr<U, block_type>>(ptr), heap_delete<T, block_type>{size});
     }
 };
 
