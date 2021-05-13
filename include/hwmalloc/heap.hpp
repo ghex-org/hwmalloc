@@ -1,8 +1,8 @@
 #pragma once
 
 #include <hwmalloc/detail/fixed_size_heap.hpp>
-#include <hwmalloc/void_ptr.hpp>
-#include <hwmalloc/const_void_ptr.hpp>
+#include <hwmalloc/fancy_ptr/void_ptr.hpp>
+#include <hwmalloc/fancy_ptr/const_void_ptr.hpp>
 #include <hwmalloc/allocator.hpp>
 #include <vector>
 #include <unordered_map>

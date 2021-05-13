@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hwmalloc/ptr.hpp>
-#include <hwmalloc/const_ptr.hpp>
+#include <hwmalloc/fancy_ptr/ptr.hpp>
+#include <hwmalloc/fancy_ptr/const_ptr.hpp>
 
 namespace hwmalloc
 {

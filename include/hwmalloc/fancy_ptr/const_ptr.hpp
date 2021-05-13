@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hwmalloc/ptr.hpp>
+#include <hwmalloc/fancy_ptr/ptr.hpp>
 
 namespace hwmalloc
 {

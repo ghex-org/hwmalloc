@@ -1,6 +1,6 @@
 #pragma once
 
-#include <hwmalloc/void_ptr.hpp>
+#include <hwmalloc/fancy_ptr/void_ptr.hpp>
 #include <cstddef>
 #include <type_traits>
 
