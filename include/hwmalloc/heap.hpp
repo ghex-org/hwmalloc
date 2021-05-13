@@ -203,4 +203,29 @@ class heap
     //}
 };
 
+template<typename Context>
+constexpr std::size_t heap<Context>::s_tiny_limit;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_small_limit;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_large_limit;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_bucket_shift;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_tiny_segment;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_small_segment;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_large_segment;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_tiny_increment_shift;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_tiny_increment;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_num_tiny_heaps;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_num_small_heaps;
+template<typename Context>
+constexpr std::size_t heap<Context>::s_num_large_heaps;
+
 } // namespace hwmalloc

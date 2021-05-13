@@ -9,7 +9,6 @@ if(NOT CMAKE_BUILD_TYPE) # AND NOT CMAKE_CONFIGURATION_TYPES)
     set_property(CACHE CMAKE_CXX_FLAGS PROPERTY VALUE "-Wall -Wextra -Wpedantic")
 endif()
 
-
 add_library(hwmalloc SHARED)
 #add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
 
@@ -42,3 +41,4 @@ if (TESTING)
     enable_testing()
     add_subdirectory(test)
 endif()
+
