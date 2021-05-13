@@ -18,6 +18,14 @@
 namespace hwmalloc
 {
 int
+get_num_devices()
+{
+    int n;
+    HWMALLOC_CHECK_CUDA_RESULT(cudaGetDeviceCount(&n));
+    return n;
+}
+
+int
 get_device_id()
 {
     int id;
@@ -40,9 +48,9 @@ device_malloc(std::size_t size)
 }
 
 void
-device_free(void* ptr)
+device_free(void* ptr) noexcept
 {
-    HWMALLOC_CHECK_CUDA_RESULT(cudaFree(ptr));
+    cudaFree(ptr);
 }
 
 } // namespace hwmalloc

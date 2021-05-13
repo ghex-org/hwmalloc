@@ -2,7 +2,7 @@ target_sources(hwmalloc PRIVATE numa.cpp)
 
 if (HWMALLOC_ENABLE_DEVICE)
     set(HWMALLOC_DEVICE_RUNTIME "cuda" CACHE STRING "Choose the type of the gpu runtime.")
-    set_property(CACHE HWMALLOC_DEVICE_RUNTIME PROPERTY STRINGS "cuda" "hip")
+    set_property(CACHE HWMALLOC_DEVICE_RUNTIME PROPERTY STRINGS "cuda" "hip" "emulate")
 
     if (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "cuda")
         find_package(CUDAToolkit REQUIRED)

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <hwmalloc/memory_type.hpp>
 #include <cstddef>
 
 namespace hwmalloc {
@@ -58,12 +57,12 @@ namespace detail {
 
 struct register_fn
 {
-    template<memory_type M, typename Context>
-    constexpr auto operator()(Context&& c, void* ptr, std::size_t size, memory_t<M> m) const
-        noexcept(noexcept(register_memory(std::forward<Context>(c), ptr, size, m)))
-            -> decltype(register_memory(std::forward<Context>(c), ptr, size, m))
+    template<typename Context>
+    constexpr auto operator()(Context&& c, void* ptr, std::size_t size) const
+        noexcept(noexcept(register_memory(std::forward<Context>(c), ptr, size)))
+            -> decltype(register_memory(std::forward<Context>(c), ptr, size))
     {
-        return register_memory(std::forward<Context>(c), ptr, size, m);
+        return register_memory(std::forward<Context>(c), ptr, size);
     }
 };
 } // namespace detail

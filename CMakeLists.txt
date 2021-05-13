@@ -26,7 +26,8 @@ target_link_libraries(hwmalloc INTERFACE Boost::boost)
 
 target_include_directories(hwmalloc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>)
+    $<INSTALL_INTERFACE:include>
+    ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 set(TESTING OFF CACHE BOOL "True if tests shall be built")
 

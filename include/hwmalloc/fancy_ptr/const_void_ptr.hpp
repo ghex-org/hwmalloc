@@ -45,6 +45,10 @@ class hw_void_ptr<Block, void const*>
 
     constexpr void const* get() const noexcept { return m_data.m_ptr; }
 
+#if HWMALLOC_ENABLE_DEVICE
+    constexpr void const* device_ptr() const noexcept { return m_data.m_device_ptr; }
+#endif
+
     constexpr operator bool() const noexcept { return (bool)m_data.m_ptr; }
 
     template<typename T, typename = std::enable_if_t<std::is_const<T>::value>>

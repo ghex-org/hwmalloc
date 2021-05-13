@@ -47,7 +47,7 @@ struct context
 };
 
 auto
-register_memory(context&, void* ptr, std::size_t, hwmalloc::cpu_t)
+register_memory(context&, void* ptr, std::size_t)
 {
     return context::region{ptr};
 }
@@ -60,7 +60,7 @@ TEST(segment, construction)
     context c;
 
     auto a = hwmalloc::numa().allocate(1, 0);
-    auto r = hwmalloc::register_memory(c, a.ptr, a.size, hwmalloc::cpu);
+    auto r = hwmalloc::register_memory(c, a.ptr, a.size);
 
     boost::lockfree::stack<block_t> free_stack(256);
 
