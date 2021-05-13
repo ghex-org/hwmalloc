@@ -103,19 +103,19 @@ class pool
     {
         block_type b;
         if (m_free_stack.pop(b)) return b;
-        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_mutex.try_lock())
+            if (m_free_stack.pop(b)) return b;
+        if (m_free_stack.pop(b)) return b;
+        for (auto& kvp : m_segments) kvp.first->collect(m_free_stack);
+        if (m_free_stack.pop(b)) return b;
+        unsigned int counter = 0;
+        while (!m_free_stack.pop(b))
         {
-            if (m_free_stack.pop(b)) return b;
-            for (auto& kvp : m_segments) kvp.first->collect(m_free_stack);
-            if (m_free_stack.pop(b)) return b;
-            unsigned int counter = 0;
-            while (!m_free_stack.pop(b))
-            {
-                // add segments every 2nd iteration
-                if (counter % 2 == 0) add_segment();
-            }
-            return b;
+            // add segments every 2nd iteration
+            if (counter % 2 == 0) add_segment();
         }
+        m_mutex.unlock();
+        return b;
     }
 
     void free(block_type const& b)
