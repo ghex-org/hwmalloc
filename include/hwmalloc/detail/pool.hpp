@@ -112,7 +112,7 @@ class pool
         while (!m_free_stack.pop(b))
         {
             // add segments every 2nd iteration
-            if (counter % 2 == 0) add_segment();
+            if (counter++ % 2 == 0) add_segment();
         }
         m_mutex.unlock();
         return b;
@@ -124,7 +124,7 @@ class pool
         if (!m_never_free && b.m_segment->is_empty())
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            if (b.m_segment->is_empty() /*&& m_segments.size()>0*/) m_segments[b.m_segment].reset();
+            if (b.m_segment->is_empty() /*&& m_segments.size()>0*/) m_segments.erase(b.m_segment);
         }
     }
 };
