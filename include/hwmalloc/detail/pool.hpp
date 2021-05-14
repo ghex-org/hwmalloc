@@ -112,7 +112,7 @@ class pool
         while (!m_free_stack.pop(b))
         {
             // add segments every 2nd iteration
-            if (++counter % 2 == 0) add_segment();
+            if (counter++ % 2 == 0) add_segment();
         }
         m_mutex.unlock();
         return b;
