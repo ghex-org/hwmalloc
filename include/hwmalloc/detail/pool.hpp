@@ -98,16 +98,17 @@ class pool
         m_allocate_on_device = true;
     }
 #endif
-
+    
     auto allocate()
     {
         block_type b;
         if (m_free_stack.pop(b)) return b;
-        if (!m_mutex.try_lock())
-            if (m_free_stack.pop(b)) return b;
-        if (m_free_stack.pop(b)) return b;
+        m_mutex.lock();
         for (auto& kvp : m_segments) kvp.first->collect(m_free_stack);
-        if (m_free_stack.pop(b)) return b;
+	if (m_free_stack.pop(b)) {
+            m_mutex.unlock();
+            return b;
+        }
         unsigned int counter = 0;
         while (!m_free_stack.pop(b))
         {
@@ -121,12 +122,13 @@ class pool
     void free(block_type const& b)
     {
         b.m_segment->free(b);
-        if (!m_never_free && b.m_segment->is_empty())
+	if (!m_never_free && b.m_segment->is_empty())
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            if (b.m_segment->is_empty() /*&& m_segments.size()>0*/) m_segments.erase(b.m_segment);
+            if (b.m_segment->is_empty() && m_segments.size()>1) m_segments.erase(b.m_segment);
         }
     }
+
 };
 
 } // namespace detail
