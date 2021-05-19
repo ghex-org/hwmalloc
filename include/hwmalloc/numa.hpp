@@ -56,15 +56,16 @@ class numa_tools
     index_type  num_device_nodes() const noexcept { return m_device_nodes.size(); }
     index_type  num_allowed_nodes() const noexcept { return m_allowed_nodes.size(); }
     index_type  preferred_node() const noexcept;
+    index_type  local_node() const noexcept;
     bool        can_allocate_on(index_type node) const noexcept;
     allocation  allocate(size_type num_pages) const noexcept;
     allocation  allocate(size_type num_pages, index_type node) const noexcept;
     allocation  allocate_malloc(size_type num_pages) const noexcept;
     void        free(allocation const& a) const noexcept;
+    index_type get_node(void* ptr) const noexcept;
 
   private:
     void       discover_nodes() noexcept;
-    index_type get_node(void* ptr) const noexcept;
 };
 
 const numa_tools& numa() noexcept;

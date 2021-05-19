@@ -77,6 +77,12 @@ numa_tools::preferred_node() const noexcept
     return numa_preferred();
 }
 
+numa_tools::index_type
+numa_tools::local_node() const noexcept
+{
+    return numa_node_of_cpu(sched_getcpu());
+}
+
 bool
 numa_tools::can_allocate_on(index_type node) const noexcept
 {
