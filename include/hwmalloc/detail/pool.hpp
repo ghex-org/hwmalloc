@@ -112,7 +112,7 @@ class pool
     {
         block_type b;
         if (m_free_stack.pop(b)) return b;
-        if (!m_mutex.try_lock())
+        while (!m_mutex.try_lock())
             if (m_free_stack.pop(b)) return b;
         if (m_free_stack.pop(b)) return b;
         for (auto& kvp : m_segments) kvp.first->collect(m_free_stack);
