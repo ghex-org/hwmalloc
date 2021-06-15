@@ -1,3 +1,12 @@
+/*
+ * GridTools
+ *
+ * Copyright (c) 2014-2021, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <hwmalloc/detail/segment.hpp>
@@ -103,7 +112,9 @@ class pool
     {
         block_type b;
         if (m_free_stack.pop(b)) return b;
-        m_mutex.lock();
+        while (!m_mutex.try_lock())
+            if (m_free_stack.pop(b)) return b;
+        if (m_free_stack.pop(b)) return b;
         for (auto& kvp : m_segments) kvp.first->collect(m_free_stack);
         if (m_free_stack.pop(b))
         {

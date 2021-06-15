@@ -1,3 +1,12 @@
+/*
+ * GridTools
+ *
+ * Copyright (c) 2014-2021, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include <gtest/gtest.h>
 #include <hwmalloc/fancy_ptr/void_ptr.hpp>
 #include <hwmalloc/fancy_ptr/const_void_ptr.hpp>

@@ -1,3 +1,12 @@
+/*
+ * GridTools
+ *
+ * Copyright (c) 2014-2021, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include <hwmalloc/numa.hpp>
 #include <numaif.h>
 #include <numa.h>
@@ -75,6 +84,12 @@ numa_tools::index_type
 numa_tools::preferred_node() const noexcept
 {
     return numa_preferred();
+}
+
+numa_tools::index_type
+numa_tools::local_node() const noexcept
+{
+    return numa_node_of_cpu(sched_getcpu());
 }
 
 bool
