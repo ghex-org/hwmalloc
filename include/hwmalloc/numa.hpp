@@ -62,10 +62,10 @@ class numa_tools
     allocation  allocate(size_type num_pages, index_type node) const noexcept;
     allocation  allocate_malloc(size_type num_pages) const noexcept;
     void        free(allocation const& a) const noexcept;
-    index_type get_node(void* ptr) const noexcept;
+    index_type  get_node(void* ptr) const noexcept;
 
   private:
-    void       discover_nodes() noexcept;
+    void discover_nodes() noexcept;
 };
 
 const numa_tools& numa() noexcept;
