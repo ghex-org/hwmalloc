@@ -19,6 +19,7 @@ function(reg_test t)
     add_executable(${t} ${t}.cpp)
     target_link_libraries(${t} PRIVATE gtest_main)
     target_link_libraries(${t} PRIVATE hwmalloc)
+    target_link_libraries(${t} PRIVATE Boost::boost)
     add_test(NAME ${t} COMMAND $<TARGET_FILE:${t}>)
 endfunction()
 

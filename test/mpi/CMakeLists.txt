@@ -11,6 +11,7 @@ function(reg_test_mpi t n)
     target_link_libraries(${t} PRIVATE GTest::gtest)
     target_link_libraries(${t} PRIVATE hwmalloc)
     target_link_libraries(${t} PRIVATE MPI::MPI_CXX)
+    target_link_libraries(${t} PRIVATE Boost::boost)
     add_test(
         NAME ${t}
         COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${n} ${MPIEXEC_PREFLAGS}

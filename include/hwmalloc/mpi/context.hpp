@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <hwmalloc/heap.hpp>
+#include <hwmalloc/register.hpp>
 #include <mpi.h>
 #include <iostream>
 
@@ -81,23 +81,14 @@ class context
     MPI_Win  m_win;
 
   public:
-    context(MPI_Comm comm)
-    : m_comm{comm}
-    {
-        MPI_Info info;
-        MPI_Info_create(&info);
-        MPI_Info_set(info, "no_locks", "false");
-        MPI_Win_create_dynamic(info, m_comm, &m_win);
-        MPI_Info_free(&info);
-        //MPI_Win_create_dynamic(MPI_INFO_NULL, m_comm, &m_win);
-    }
+    context(MPI_Comm comm);
 
     context(context const&) = delete;
     context(context&&) = delete;
 
     ~context() { MPI_Win_free(&m_win); }
 
-    auto make_region(void* ptr, std::size_t size) { return region{m_comm, m_win, ptr, size}; }
+    region make_region(void* ptr, std::size_t size) { return {m_comm, m_win, ptr, size}; }
 };
 
 auto
@@ -106,7 +97,7 @@ register_memory(context& c, void* ptr, std::size_t size)
     return c.make_region(ptr, size);
 }
 
-using heap = ::hwmalloc::heap<context>;
+//using heap = ::hwmalloc::heap<context>;
 
 } // namespace mpi
 } // namespace hwmalloc

@@ -25,7 +25,8 @@ if (HWMALLOC_NUMA_THROWS)
     target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_THROWS)
 endif()
 find_package(Boost REQUIRED)
-target_link_libraries(hwmalloc INTERFACE Boost::boost)
+#target_link_libraries(hwmalloc INTERFACE Boost::boost)
+target_link_libraries(hwmalloc PRIVATE Boost::boost)
 
 target_include_directories(hwmalloc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

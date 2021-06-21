@@ -1,4 +1,3 @@
-
 find_package(MPI REQUIRED COMPONENTS CXX)
-
-#set(HWMALLOC_TEST_MPI OFF CACHE BOOL "True if MPI tests shall be built")
+target_sources(hwmalloc PRIVATE context.cpp)
+target_link_libraries(hwmalloc PRIVATE MPI::MPI_CXX)
