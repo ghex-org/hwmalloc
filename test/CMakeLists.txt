@@ -30,6 +30,6 @@ if (HWMALLOC_ENABLE_DEVICE)
 reg_test(test_device)
 endif()
 
-if (HWMALLOC_TEST_MPI)
+if (HWMALLOC_MPI_SUPPORT)
     add_subdirectory(mpi)
 endif()

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 //#include <hwmalloc/heap.hpp>
-#include "./context.hpp"
+#include <hwmalloc/mpi/context.hpp>
 #include <iostream>
 
 TEST(mpi, some_test)
@@ -12,7 +12,8 @@ TEST(mpi, some_test)
     hwmalloc::mpi::heap h(&c);
 
    
-    auto ptr = h.allocate(128, 0);
+    MPI_Barrier(MPI_COMM_WORLD);
+    auto ptr = h.allocate(8, 0);
     std::cout << ptr.get() << std::endl;
     MPI_Barrier(MPI_COMM_WORLD);
     h.free(ptr);

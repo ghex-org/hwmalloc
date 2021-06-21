@@ -37,7 +37,7 @@ struct region
     , m_ptr{ptr}
     {
         // attach ptr to window
-        std::cout << "attaching memory " << ptr << " to window" << std::endl;
+        std::cout << "attaching memory " << ptr << " with size " << size << " to window" << std::endl;
         MPI_Win_attach(m_win, ptr, size);
     }
 
