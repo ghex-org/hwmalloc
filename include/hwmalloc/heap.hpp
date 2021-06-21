@@ -113,7 +113,7 @@ class heap
 
     static constexpr std::size_t tiny_bucket_index(std::size_t n) noexcept
     {
-        return (n + s_tiny_increment - 1) >> s_tiny_increment_shift;
+        return ((n + s_tiny_increment - 1) >> s_tiny_increment_shift)-1;
     }
 
     static constexpr std::size_t bucket_index(std::size_t n) noexcept
