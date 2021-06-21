@@ -17,11 +17,18 @@ namespace hwmalloc
 {
 namespace mpi
 {
-
 struct handle
 {
-    void* m_ptr;
+    void*       m_ptr;
     std::size_t m_size;
+
+    MPI_Aint get_remote_key() const noexcept
+    {
+        MPI_Aint address;
+        MPI_Get_address(m_ptr, &address);
+        return address;
+        //return ((char*)m_ptr - MPI_BOTTOM);
+    }
 };
 
 struct region
@@ -37,24 +44,34 @@ struct region
     , m_ptr{ptr}
     {
         // attach ptr to window
-        std::cout << "attaching memory " << ptr << " with size " << size << " to window" << std::endl;
+        std::cout << "attaching memory " << ptr << " with size " << size << " to window"
+                  << std::endl;
         MPI_Win_attach(m_win, ptr, size);
     }
 
     region(region const&) = delete;
-    region(region&&) noexcept = default;
+
+    region(region&& r) noexcept
+    : m_comm{r.m_comm}
+    , m_win{r.m_win}
+    , m_ptr{std::exchange(r.m_ptr, nullptr)}
+    {
+    }
 
     ~region()
     {
-        // detach memory from window
-        std::cout << "detaching memory " << m_ptr << " to window" << std::endl;
-        MPI_Win_detach(m_win, m_ptr);
+        if (m_ptr)
+        {
+            // detach memory from window
+            std::cout << "detaching memory " << m_ptr << " from window" << std::endl;
+            MPI_Win_detach(m_win, m_ptr);
+        }
     }
 
     // get a handle to some portion of the region
     handle_type get_handle(std::size_t offset, std::size_t size)
     {
-        return {(void*)((char*)m_ptr+offset), size};
+        return {(void*)((char*)m_ptr + offset), size};
     }
 };
 
@@ -72,6 +89,7 @@ class context
         MPI_Info_set(info, "no_locks", "false");
         MPI_Win_create_dynamic(info, m_comm, &m_win);
         MPI_Info_free(&info);
+        //MPI_Win_create_dynamic(MPI_INFO_NULL, m_comm, &m_win);
     }
 
     context(context const&) = delete;
