@@ -17,8 +17,8 @@ endif()
 
 function(reg_test t)
     add_executable(${t} ${t}.cpp)
-    target_link_libraries(${t} gtest_main)
-    target_link_libraries(${t} hwmalloc)
+    target_link_libraries(${t} PRIVATE gtest_main)
+    target_link_libraries(${t} PRIVATE hwmalloc)
     add_test(NAME ${t} COMMAND $<TARGET_FILE:${t}>)
 endfunction()
 
@@ -28,4 +28,8 @@ reg_test(test_segment)
 
 if (HWMALLOC_ENABLE_DEVICE)
 reg_test(test_device)
+endif()
+
+if (HWMALLOC_TEST_MPI)
+    add_subdirectory(mpi)
 endif()

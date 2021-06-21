@@ -13,6 +13,7 @@ endif()
 
 add_library(hwmalloc SHARED)
 #add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
+set_target_properties(hwmalloc PROPERTIES INTERFACE_POSITION_INDEPENDENT_CODE ON)
 
 set(HWMALLOC_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${HWMALLOC_MODULE_PATH}")
@@ -32,6 +33,7 @@ target_include_directories(hwmalloc PUBLIC
     ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 set(TESTING OFF CACHE BOOL "True if tests shall be built")
+set(HWMALLOC_TEST_MPI OFF CACHE BOOL "True if MPI tests shall be built")
 
 set(HWMALLOC_ENABLE_DEVICE OFF CACHE BOOL "True if GPU support shall be enabled")
 
