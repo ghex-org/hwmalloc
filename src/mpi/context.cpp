@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <hwmalloc/mpi/context.hpp>
-#include <mpi.h>
 
 namespace hwmalloc
 {
