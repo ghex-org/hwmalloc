@@ -11,7 +11,6 @@
 
 #include <hwmalloc/register.hpp>
 #include <mpi.h>
-#include <iostream>
 
 namespace hwmalloc
 {
@@ -43,9 +42,6 @@ struct region
     , m_win{win}
     , m_ptr{ptr}
     {
-        // attach ptr to window
-        std::cout << "attaching memory " << ptr << " with size " << size << " to window"
-                  << std::endl;
         MPI_Win_attach(m_win, ptr, size);
     }
 
@@ -60,12 +56,7 @@ struct region
 
     ~region()
     {
-        if (m_ptr)
-        {
-            // detach memory from window
-            std::cout << "detaching memory " << m_ptr << " from window" << std::endl;
-            MPI_Win_detach(m_win, m_ptr);
-        }
+        if (m_ptr) MPI_Win_detach(m_win, m_ptr);
     }
 
     // get a handle to some portion of the region
@@ -77,18 +68,16 @@ struct region
 
 class context
 {
+  private:
     MPI_Comm m_comm;
     MPI_Win  m_win;
 
   public:
     context(MPI_Comm comm);
-
     context(context const&) = delete;
     context(context&&) = delete;
-
-    ~context() { MPI_Win_free(&m_win); }
-
-    region make_region(void* ptr, std::size_t size) { return {m_comm, m_win, ptr, size}; }
+    ~context();
+    region make_region(void* ptr, std::size_t size) const;
 };
 
 auto
@@ -96,8 +85,6 @@ register_memory(context& c, void* ptr, std::size_t size)
 {
     return c.make_region(ptr, size);
 }
-
-//using heap = ::hwmalloc::heap<context>;
 
 } // namespace mpi
 } // namespace hwmalloc

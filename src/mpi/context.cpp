@@ -25,5 +25,13 @@ context::context(MPI_Comm comm)
     //MPI_Win_create_dynamic(MPI_INFO_NULL, m_comm, &m_win);
 }
 
+context::~context() { MPI_Win_free(&m_win); }
+
+region
+context::make_region(void* ptr, std::size_t size) const
+{
+    return {m_comm, m_win, ptr, size};
+}
+
 } // namespace mpi
 } // namespace hwmalloc

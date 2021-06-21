@@ -25,7 +25,6 @@ if (HWMALLOC_NUMA_THROWS)
     target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_THROWS)
 endif()
 find_package(Boost REQUIRED)
-#target_link_libraries(hwmalloc INTERFACE Boost::boost)
 target_link_libraries(hwmalloc PRIVATE Boost::boost)
 
 target_include_directories(hwmalloc PUBLIC
@@ -36,7 +35,6 @@ target_include_directories(hwmalloc PUBLIC
 set(HWMALLOC_MPI_SUPPORT OFF CACHE BOOL "True if MPI support is built")
 
 set(TESTING OFF CACHE BOOL "True if tests shall be built")
-#set(HWMALLOC_TEST_MPI OFF CACHE BOOL "True if MPI tests shall be built")
 
 set(HWMALLOC_ENABLE_DEVICE OFF CACHE BOOL "True if GPU support shall be enabled")
 
