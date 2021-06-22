@@ -68,7 +68,7 @@ class hw_void_ptr
     constexpr VoidPtr device_ptr() const noexcept { return m_data.m_device_ptr; }
 #endif
 
-    const auto& handle() noexcept { return m_data.m_handle_cpu; }
+    auto handle() const noexcept { return m_data.m_handle; }
 
     constexpr operator bool() const noexcept { return (bool)m_data.m_ptr; }
 

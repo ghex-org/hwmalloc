@@ -14,6 +14,7 @@
 
 #ifdef NDEBUG
 #define HWMALLOC_CHECK_UCX_RESULT(x) x;
+#define HWMALLOC_CHECK_UCX_RESULT_NOEXCEPT(x) x;
 #else
 #include <string>
 #include <stdexcept>

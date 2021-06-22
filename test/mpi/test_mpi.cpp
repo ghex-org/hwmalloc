@@ -12,6 +12,8 @@ TEST(mpi, some_test)
 
     auto ptr = h.allocate(8, 0);
 
+    std::cout << ptr.handle().get_remote_key() << std::endl;
+
     std::cout << ptr.get() << std::endl;
 
     h.free(ptr);

@@ -91,6 +91,8 @@ class hw_ptr
     // needed for std::allocator_traits::construct
     constexpr explicit operator void*() const noexcept { return m_ptr.get(); }
     constexpr          operator bool() const noexcept { return (bool)m_ptr; }
+    
+    auto handle() const noexcept { return m_ptr.handle(); }
 
   public: // iterator functions
     this_type& operator++() noexcept
