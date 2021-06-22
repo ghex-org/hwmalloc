@@ -26,6 +26,10 @@ reg_test(test_numa)
 reg_test(test_ptr)
 reg_test(test_segment)
 
+find_package(OpenMP REQUIRED)
+reg_test(test_omp)
+target_link_libraries(test_omp OpenMP::OpenMP_CXX NUMA::libnuma)
+
 if (HWMALLOC_ENABLE_DEVICE)
 reg_test(test_device)
 endif()
