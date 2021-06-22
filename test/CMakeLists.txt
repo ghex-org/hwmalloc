@@ -29,7 +29,8 @@ reg_test(test_segment)
 
 find_package(OpenMP REQUIRED)
 reg_test(test_omp)
-target_link_libraries(test_omp OpenMP::OpenMP_CXX NUMA::libnuma)
+target_link_libraries(test_omp PRIVATE OpenMP::OpenMP_CXX)
+target_link_libraries(test_omp PRIVATE NUMA::libnuma)
 
 if (HWMALLOC_ENABLE_DEVICE)
 reg_test(test_device)
