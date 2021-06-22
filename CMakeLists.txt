@@ -41,13 +41,20 @@ endif()
 find_package(Boost REQUIRED)
 target_link_libraries(hwmalloc PRIVATE Boost::boost)
 
-
 # ---------------------------------------------------------------------
 # MPI setup
 # ---------------------------------------------------------------------
 include(hwmalloc_mpi)
 if (HWMALLOC_WITH_MPI)
     target_link_libraries(hwmalloc PRIVATE MPI::MPI_CXX)
+endif()
+
+# ---------------------------------------------------------------------
+# UCX setup
+# ---------------------------------------------------------------------
+include(hwmalloc_ucx)
+if (HWMALLOC_WITH_UCX)
+    target_link_libraries(hwmalloc PRIVATE UCP::libucp)
 endif()
 
 # ---------------------------------------------------------------------

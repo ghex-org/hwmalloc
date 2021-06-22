@@ -34,3 +34,7 @@ endif()
 if (HWMALLOC_WITH_MPI)
     add_subdirectory(mpi)
 endif()
+
+if (HWMALLOC_WITH_MPI)
+    add_subdirectory(ucx)
+endif()
