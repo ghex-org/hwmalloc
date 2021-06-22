@@ -76,7 +76,7 @@ TEST(spread, neverfree)
         std::vector<heap_t::pointer> pointers;
         pointers.resize(NBUFFERS);
 
-        struct bitmask* nodemask;
+        bitmask* nodemask;
         int             nnodes = hwmalloc::numa().num_host_nodes();
         int             thr_per_node = nthr / nnodes;
         int             local_node = thrid % nnodes;

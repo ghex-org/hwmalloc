@@ -27,7 +27,6 @@ reg_test(test_ptr)
 reg_test(test_segment)
 
 find_package(OpenMP REQUIRED)
-find_package(NUMA REQUIRED)
 reg_test(test_omp)
 target_link_libraries(test_omp OpenMP::OpenMP_CXX NUMA::libnuma)
 
