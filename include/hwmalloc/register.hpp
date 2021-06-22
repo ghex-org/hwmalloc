@@ -10,9 +10,10 @@
 #pragma once
 
 #include <cstddef>
+#include <utility>
 
-namespace hwmalloc {
-
+namespace hwmalloc
+{
 // Customization point for memory registration
 // ===========================================
 // The function
@@ -62,8 +63,8 @@ namespace hwmalloc {
 // +---------------------+----------------+-------------------------------------------------------+
 //
 
-namespace detail {
-
+namespace detail
+{
 struct register_fn
 {
     template<typename Context>
@@ -82,6 +83,5 @@ namespace
 {
 constexpr auto const& register_memory = static_const_v<detail::register_fn>;
 }
-
 
 } // namespace hwmalloc

@@ -22,6 +22,8 @@ list(APPEND CMAKE_MODULE_PATH "${HWMALLOC_MODULE_PATH}")
 # ---------------------------------------------------------------------
 add_library(hwmalloc SHARED)
 #add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
+set_target_properties(hwmalloc PROPERTIES INTERFACE_POSITION_INDEPENDENT_CODE ON)
+include(hwmalloc_macros)
 
 # ---------------------------------------------------------------------
 # NUMA setup
@@ -37,16 +39,26 @@ endif()
 # Boost setup
 # ---------------------------------------------------------------------
 find_package(Boost REQUIRED)
-target_link_libraries(hwmalloc INTERFACE Boost::boost)
+target_link_libraries(hwmalloc PRIVATE Boost::boost)
+
+
+# ---------------------------------------------------------------------
+# MPI setup
+# ---------------------------------------------------------------------
+include(hwmalloc_mpi)
+if (HWMALLOC_WITH_MPI)
+    target_link_libraries(hwmalloc PRIVATE MPI::MPI_CXX)
+endif()
 
 # ---------------------------------------------------------------------
 # Libfabric setup
 # Can be simplified as this is copied from hpx and options obsolete
 # but the config files with namespaces are very useful in big projects
 # ---------------------------------------------------------------------
-include(hwmalloc_macros)
 include(hwmalloc_libfabric)
-target_link_libraries(hwmalloc INTERFACE libfabric::libfabric)
+if (HWMALLOC_WITH_LIBFABRIC)
+    target_link_libraries(hwmalloc PRIVATE libfabric::libfabric)
+endif()
 
 # ---------------------------------------------------------------------
 # GPU device support
