@@ -73,9 +73,6 @@ target_include_directories(hwmalloc PUBLIC
     $<INSTALL_INTERFACE:include>
     ${CMAKE_CURRENT_BINARY_DIR}/include)
 
-#set(HWMALLOC_MPI_SUPPORT OFF CACHE BOOL "True if MPI support is built")
-#set(TESTING OFF CACHE BOOL "True if tests shall be built")
-
 # ---------------------------------------------------------------------
 # Generate hwmalloc config file
 # ---------------------------------------------------------------------
