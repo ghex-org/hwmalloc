@@ -13,8 +13,8 @@
 #include <gtest/gtest.h>
 #include "mpi_listener.hpp"
 
-
-inline void init_mpi(int argc, char** argv)
+inline void
+init_mpi(int argc, char** argv)
 {
     int required = MPI_THREAD_MULTIPLE;
     int provided;
@@ -37,16 +37,17 @@ inline void init_mpi(int argc, char** argv)
     //std::cout << tmp << std::endl;
 }
 
-inline void finalize_mpi()
+inline void
+finalize_mpi()
 {
     MPI_Barrier(MPI_COMM_WORLD);
 
     MPI_Finalize();
 }
 
-inline auto run_tests()
+inline auto
+run_tests()
 {
-
     // record the local return value for tests run on this mpi rank
     //      0 : success
     //      1 : failure
@@ -59,12 +60,3 @@ inline auto run_tests()
 
     return global_result;
 }
-
-//    MPI_Barrier(MPI_COMM_WORLD);
-//
-//    MPI_Finalize();
-//
-//    return global_result;
-//}
-
-

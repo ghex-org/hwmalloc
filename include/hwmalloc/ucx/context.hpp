@@ -75,7 +75,9 @@ struct context
 {
     ucp_context_h m_ucp_context;
 
-    context() = default;
+    context(ucp_context_h ctxt) noexcept
+    : m_ucp_context{ctxt}
+    {}
     context(context const&) = delete;
     context(context&&) = delete;
     ~context() {}

@@ -7,7 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "mpi_setup.hpp"
+#include "./mpi_setup.hpp"
 
 GTEST_API_ int
 main(int argc, char** argv)

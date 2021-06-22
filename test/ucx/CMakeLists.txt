@@ -1,14 +1,6 @@
-find_package(MPI REQUIRED COMPONENTS CXX)
-
-add_library(gtest_main_ucx ./gtest_main_ucx.cpp)
-target_link_libraries(gtest_main_ucx PRIVATE GTest::gtest)
-target_link_libraries(gtest_main_ucx PRIVATE MPI::MPI_CXX)
-target_link_libraries(gtest_main_ucx PRIVATE UCP::libucp)
-target_link_libraries(gtest_main_ucx PRIVATE hwmalloc)
-
 function(reg_test_ucx t n)
     add_executable(${t} ${t}.cpp)
-    target_link_libraries(${t} PRIVATE gtest_main_ucx)
+    target_link_libraries(${t} PRIVATE gtest_main_mpi)
     target_link_libraries(${t} PRIVATE GTest::gtest)
     target_link_libraries(${t} PRIVATE hwmalloc)
     target_link_libraries(${t} PRIVATE MPI::MPI_CXX)

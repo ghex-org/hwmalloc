@@ -31,10 +31,14 @@ if (HWMALLOC_ENABLE_DEVICE)
 reg_test(test_device)
 endif()
 
+if (HWMALLOC_WITH_MPI OR HWMALLOC_WITH_UCX)
+    add_subdirectory(mpi_runner)
+endif()
+
 if (HWMALLOC_WITH_MPI)
     add_subdirectory(mpi)
 endif()
 
-if (HWMALLOC_WITH_MPI)
+if (HWMALLOC_WITH_UCX)
     add_subdirectory(ucx)
 endif()
