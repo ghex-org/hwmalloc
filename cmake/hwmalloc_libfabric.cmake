@@ -5,7 +5,7 @@
 #------------------------------------------------------------------------------
 hwmalloc_option(HWMALLOC_WITH_LIBFABRIC BOOL
   "Enable libfabric memory registration/pinning module"
-  OFF CATEGORY "hwmalloc") # ADVANCED)
+  OFF CATEGORY "hwmalloc")
 
 if (HWMALLOC_WITH_LIBFABRIC)
   find_package(Libfabric REQUIRED)
@@ -58,4 +58,3 @@ write_config_defines_file(
     FILENAME  "${PROJECT_BINARY_DIR}/include/hwmalloc/libfabric/config.hpp"
 )
 
-target_include_directories(libfabric::libfabric INTERFACE "${PROJECT_BINARY_DIR}")

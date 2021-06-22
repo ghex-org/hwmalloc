@@ -14,6 +14,6 @@ if (HWMALLOC_ENABLE_DEVICE)
     target_sources(hwmalloc PRIVATE device_${HWMALLOC_DEVICE_RUNTIME}.cpp)
 endif()
 
-if(HWMALLOC_MPI_SUPPORT)
+if(HWMALLOC_WITH_MPI)
     add_subdirectory(mpi)
 endif()
