@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.17)
 # CMake version is set at 3.17 because of find_package(CUDAToolkit)
 # TODO: find a workaround to be able to lower the version requirement
-project(hwmalloc LANGUAGES CXX)
+project(hwmalloc VERSION 0.1 LANGUAGES CXX)
 
 # ---------------------------------------------------------------------
-# CMake setup, C+++ version, build type, modules, etc
+# CMake setup, C++ version, build type, modules, etc
 # ---------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -69,9 +69,9 @@ set(HWMALLOC_ENABLE_DEVICE OFF CACHE BOOL "True if GPU support shall be enabled"
 # include paths
 # ---------------------------------------------------------------------
 target_include_directories(hwmalloc PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-    ${CMAKE_CURRENT_BINARY_DIR}/include)
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 
 # ---------------------------------------------------------------------
 # Generate hwmalloc config file
@@ -93,3 +93,37 @@ if (HWMALLOC_WITH_TESTING)
     add_subdirectory(test)
 endif()
 
+# ---------------------------------------------------------------------
+# install rules
+# ---------------------------------------------------------------------
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+install(TARGETS hwmalloc
+    EXPORT HWMALLOC-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+install(DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(EXPORT HWMALLOC-targets
+  FILE HWMALLOC-targets.cmake
+  NAMESPACE HWMALLOC::
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/HWMALLOCConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/HWMALLOCConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake)
+
+write_basic_package_version_file(HWMALLOCConfigVersion.cmake
+    VERSION ${PROJECT_VERSION} COMPATIBILITY SameMajorVersion)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/HWMALLOCConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/HWMALLOCConfigVersion.cmake
+        ${CMAKE_CURRENT_LIST_DIR}/cmake/FindHWLOC.cmake
+    DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}/cmake)
+export(EXPORT HWMALLOC-targets
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/HWMALLOC-targets.cmake")
