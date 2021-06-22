@@ -1,3 +1,12 @@
+/*
+ * GridTools
+ *
+ * Copyright (c) 2014-2021, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #pragma once
 
 #include <vector>
@@ -56,15 +65,16 @@ class numa_tools
     index_type  num_device_nodes() const noexcept { return m_device_nodes.size(); }
     index_type  num_allowed_nodes() const noexcept { return m_allowed_nodes.size(); }
     index_type  preferred_node() const noexcept;
+    index_type  local_node() const noexcept;
     bool        can_allocate_on(index_type node) const noexcept;
     allocation  allocate(size_type num_pages) const noexcept;
     allocation  allocate(size_type num_pages, index_type node) const noexcept;
     allocation  allocate_malloc(size_type num_pages) const noexcept;
     void        free(allocation const& a) const noexcept;
+    index_type  get_node(void* ptr) const noexcept;
 
   private:
-    void       discover_nodes() noexcept;
-    index_type get_node(void* ptr) const noexcept;
+    void discover_nodes() noexcept;
 };
 
 const numa_tools& numa() noexcept;
