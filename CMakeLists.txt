@@ -46,7 +46,9 @@ target_link_libraries(hwmalloc INTERFACE Boost::boost)
 # ---------------------------------------------------------------------
 include(hwmalloc_macros)
 include(hwmalloc_libfabric)
-target_link_libraries(hwmalloc INTERFACE libfabric::libfabric)
+if (HWMALLOC_WITH_LIBFABRIC)
+    target_link_libraries(hwmalloc INTERFACE libfabric::libfabric)
+endif()
 
 # ---------------------------------------------------------------------
 # GPU device support
