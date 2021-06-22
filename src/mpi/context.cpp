@@ -17,9 +17,9 @@ context::context(MPI_Comm comm)
 : m_comm{comm}
 {
     MPI_Info info;
-    MPI_Info_create(&info);
-    MPI_Info_set(info, "no_locks", "false");
-    MPI_Win_create_dynamic(info, m_comm, &m_win);
+    HWMALLOC_CHECK_MPI_RESULT(MPI_Info_create(&info));
+    HWMALLOC_CHECK_MPI_RESULT(MPI_Info_set(info, "no_locks", "false"));
+    HWMALLOC_CHECK_MPI_RESULT(MPI_Win_create_dynamic(info, m_comm, &m_win));
     MPI_Info_free(&info);
     //MPI_Win_create_dynamic(MPI_INFO_NULL, m_comm, &m_win);
 }

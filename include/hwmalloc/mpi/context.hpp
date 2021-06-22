@@ -10,7 +10,7 @@
 #pragma once
 
 #include <hwmalloc/register.hpp>
-#include <mpi.h>
+#include <hwmalloc/mpi/error.hpp>
 
 namespace hwmalloc
 {
@@ -24,7 +24,7 @@ struct handle
     MPI_Aint get_remote_key() const noexcept
     {
         MPI_Aint address;
-        MPI_Get_address(m_ptr, &address);
+        HWMALLOC_CHECK_MPI_RESULT_NOEXCEPT(MPI_Get_address(m_ptr, &address));
         return address;
         //return ((char*)m_ptr - MPI_BOTTOM);
     }
@@ -42,7 +42,7 @@ struct region
     , m_win{win}
     , m_ptr{ptr}
     {
-        MPI_Win_attach(m_win, ptr, size);
+        HWMALLOC_CHECK_MPI_RESULT(MPI_Win_attach(m_win, ptr, size));
     }
 
     region(region const&) = delete;

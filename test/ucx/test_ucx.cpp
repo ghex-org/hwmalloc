@@ -4,7 +4,7 @@
 #include <hwmalloc/ucx/context.hpp>
 #include <iostream>
 
-TEST(mpi, some_test)
+TEST(ucx, some_test)
 {
     //hwmalloc::mpi::context c(MPI_COMM_WORLD);
 

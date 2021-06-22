@@ -10,7 +10,7 @@
 #pragma once
 
 #include <hwmalloc/register.hpp>
-#include <ucp/api/ucp.h>
+#include <hwmalloc/ucx/error.hpp>
 
 namespace hwmalloc
 {
@@ -46,7 +46,7 @@ struct region
         params.length = size;
 
         //ucs_status_t
-        ucs_status_t status = ucp_mem_map(m_ucp_context, &params, &m_memh);
+        HWMALLOC_CHECK_UCX_RESULT(ucp_mem_map(m_ucp_context, &params, &m_memh));
     }
 
     region(region const&) = delete;
@@ -61,7 +61,7 @@ struct region
 
     ~region()
     {
-        if (m_ptr) { ucs_status_t status = ucp_mem_unmap(m_ucp_context, m_memh); }
+        if (m_ptr) { ucp_mem_unmap(m_ucp_context, m_memh); }
     }
 
     // get a handle to some portion of the region
