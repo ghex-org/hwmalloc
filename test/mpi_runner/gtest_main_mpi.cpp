@@ -42,8 +42,6 @@ main(int argc, char** argv)
     decltype(result) global_result{};
     MPI_Allreduce(&result, &global_result, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
-    return global_result;
-
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
 
