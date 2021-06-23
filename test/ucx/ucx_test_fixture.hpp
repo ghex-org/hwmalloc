@@ -13,7 +13,7 @@
 #include <hwmalloc/ucx/error.hpp>
 #include <iostream>
 
-struct ucx_test_suite : public ::testing::Test
+struct ucx_test_fixture : public ::testing::Test
 {
     static void SetUpTestSuite()
     {
@@ -81,4 +81,4 @@ struct ucx_test_suite : public ::testing::Test
     static ucp_context_h ucp_context;
 };
 
-ucp_context_h ucx_test_suite::ucp_context;
+ucp_context_h ucx_test_fixture::ucp_context;

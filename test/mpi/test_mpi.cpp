@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
+#include "./mpi_test_fixture.hpp"
 
 #include <hwmalloc/heap.hpp>
 #include <hwmalloc/mpi/context.hpp>
 #include <iostream>
 
-TEST(mpi, some_test)
+TEST_F(mpi_test_fixture, some_test)
 {
     hwmalloc::mpi::context c(MPI_COMM_WORLD);
 

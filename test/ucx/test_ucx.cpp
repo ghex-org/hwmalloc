@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
-#include "./ucx_test_suite.hpp"
+#include "./ucx_test_fixture.hpp"
 
 #include <hwmalloc/heap.hpp>
 #include <hwmalloc/ucx/context.hpp>
 #include <iostream>
 
-TEST_F(ucx_test_suite, some_test)
+TEST_F(ucx_test_fixture, some_test)
 {
     hwmalloc::ucx::context c(ucp_context);
 
