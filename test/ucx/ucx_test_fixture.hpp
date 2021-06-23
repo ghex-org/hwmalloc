@@ -9,11 +9,11 @@
  */
 #pragma once
 
-#include <hwmalloc/mpi/error.hpp>
+#include "../mpi/mpi_test_fixture.hpp"
 #include <hwmalloc/ucx/error.hpp>
 #include <iostream>
 
-struct ucx_test_fixture : public ::testing::Test
+struct ucx_test_fixture : public mpi_test_fixture
 {
     static void SetUpTestSuite()
     {
