@@ -129,7 +129,9 @@ install(
     FILES
         ${CMAKE_CURRENT_BINARY_DIR}/HWMALLOCConfig.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/HWMALLOCConfigVersion.cmake
-        ${CMAKE_CURRENT_LIST_DIR}/cmake/FindHWLOC.cmake
+        ${CMAKE_CURRENT_LIST_DIR}/cmake/FindNUMA.cmake
+        ${CMAKE_CURRENT_LIST_DIR}/cmake/FindLibfabric.cmake
+        ${CMAKE_CURRENT_LIST_DIR}/cmake/FindUCP.cmake
     DESTINATION
         ${CMAKE_INSTALL_LIBDIR}/cmake)
 export(EXPORT HWMALLOC-targets
