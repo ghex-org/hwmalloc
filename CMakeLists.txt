@@ -117,7 +117,6 @@ install(TARGETS hwmalloc
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 install(DIRECTORY include/
-    #${PROJECT_BINARY_DIR}/include
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(FILES ${PROJECT_BINARY_DIR}/include/hwmalloc/config.hpp

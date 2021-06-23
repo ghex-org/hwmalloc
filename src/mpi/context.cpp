@@ -22,6 +22,7 @@ context::context(MPI_Comm comm)
     HWMALLOC_CHECK_MPI_RESULT(MPI_Win_create_dynamic(info, m_comm, &m_win));
     MPI_Info_free(&info);
     //MPI_Win_create_dynamic(MPI_INFO_NULL, m_comm, &m_win);
+    HWMALLOC_CHECK_MPI_RESULT(MPI_Win_fence(0,m_win));
 }
 
 context::~context() { MPI_Win_free(&m_win); }

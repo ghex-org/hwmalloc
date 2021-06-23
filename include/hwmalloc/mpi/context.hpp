@@ -78,6 +78,8 @@ class context
     context(context&&) = delete;
     ~context();
     region make_region(void* ptr, std::size_t size) const;
+
+    auto get_window() const noexcept { return m_win; }
 };
 
 auto
