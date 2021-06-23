@@ -47,6 +47,8 @@ target_link_libraries(hwmalloc PRIVATE Boost::boost)
 include(hwmalloc_mpi)
 if (HWMALLOC_WITH_MPI)
     target_link_libraries(hwmalloc PRIVATE MPI::MPI_CXX)
+    install(FILES ${PROJECT_BINARY_DIR}/include/hwmalloc/mpi/config.hpp
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hwmalloc/mpi)
 endif()
 
 # ---------------------------------------------------------------------
@@ -55,6 +57,8 @@ endif()
 include(hwmalloc_ucx)
 if (HWMALLOC_WITH_UCX)
     target_link_libraries(hwmalloc PRIVATE UCP::libucp)
+    install(FILES ${PROJECT_BINARY_DIR}/include/hwmalloc/ucx/config.hpp
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hwmalloc/ucx)
 endif()
 
 # ---------------------------------------------------------------------
@@ -65,6 +69,8 @@ endif()
 include(hwmalloc_libfabric)
 if (HWMALLOC_WITH_LIBFABRIC)
     target_link_libraries(hwmalloc PRIVATE libfabric::libfabric)
+    install(FILES ${PROJECT_BINARY_DIR}/include/hwmalloc/libfabric/config.hpp
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hwmalloc/libfabric)
 endif()
 
 # ---------------------------------------------------------------------
@@ -84,7 +90,7 @@ target_include_directories(hwmalloc PUBLIC
 # Generate hwmalloc config file
 # ---------------------------------------------------------------------
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.hpp.in
-    ${CMAKE_CURRENT_BINARY_DIR}/include/hwmalloc/config.hpp @ONLY)
+    ${PROJECT_BINARY_DIR}/include/hwmalloc/config.hpp @ONLY)
 
 # ---------------------------------------------------------------------
 # main src subdir
@@ -111,7 +117,11 @@ install(TARGETS hwmalloc
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 install(DIRECTORY include/
+    #${PROJECT_BINARY_DIR}/include
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(FILES ${PROJECT_BINARY_DIR}/include/hwmalloc/config.hpp
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hwmalloc)
 
 install(EXPORT HWMALLOC-targets
   FILE HWMALLOC-targets.cmake
