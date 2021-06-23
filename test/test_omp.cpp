@@ -147,10 +147,10 @@ TEST(close, neverfree)
         std::vector<heap_t::pointer> pointers;
         pointers.resize(NBUFFERS);
 
-        struct bitmask* nodemask = numa_allocate_nodemask();
-        numa_node_to_cpus(0, nodemask);
-        int ncpus_per_node = numa_bitmask_weight(nodemask);
-        numa_free_nodemask(nodemask);
+        struct bitmask* mask = numa_allocate_cpumask();
+        numa_node_to_cpus(0, mask);
+        int ncpus_per_node = numa_bitmask_weight(mask);
+        numa_free_cpumask(mask);
         int nused_nodes = nthr / ncpus_per_node + 1;
         if (nthr % ncpus_per_node == 0) nused_nodes--;
         int local_node = thrid % nused_nodes;
@@ -162,10 +162,10 @@ TEST(close, neverfree)
             EXPECT_TRUE((nused_nodes == 1) || (nthr == nused_nodes * ncpus_per_node));
         }
 
-        nodemask = numa_allocate_nodemask();
-        numa_bitmask_setbit(nodemask, local_node);
-        numa_bind(nodemask);
-        numa_free_nodemask(nodemask);
+        mask = numa_allocate_nodemask();
+        numa_bitmask_setbit(mask, local_node);
+        numa_bind(mask);
+        numa_free_nodemask(mask);
         // printf("%d local node %d (%d)\n", thrid, local_node, hwmalloc::numa().local_node());
 
         for (int i = 0; i < NITER; i++)
@@ -287,10 +287,10 @@ TEST(close, free)
         std::vector<heap_t::pointer> pointers;
         pointers.resize(NBUFFERS);
 
-        struct bitmask* nodemask = numa_allocate_nodemask();
-        numa_node_to_cpus(0, nodemask);
-        int ncpus_per_node = numa_bitmask_weight(nodemask);
-        numa_free_nodemask(nodemask);
+        struct bitmask* mask = numa_allocate_cpumask();
+        numa_node_to_cpus(0, mask);
+        int ncpus_per_node = numa_bitmask_weight(mask);
+        numa_free_cpumask(mask);
         int nused_nodes = nthr / ncpus_per_node + 1;
         if (nthr % ncpus_per_node == 0) nused_nodes--;
         int local_node = thrid % nused_nodes;
@@ -301,10 +301,10 @@ TEST(close, free)
             EXPECT_TRUE((nused_nodes == 1) || (nthr == nused_nodes * ncpus_per_node));
         }
 
-        nodemask = numa_allocate_nodemask();
-        numa_bitmask_setbit(nodemask, local_node);
-        numa_bind(nodemask);
-        numa_free_nodemask(nodemask);
+        mask = numa_allocate_nodemask();
+        numa_bitmask_setbit(mask, local_node);
+        numa_bind(mask);
+        numa_free_nodemask(mask);
         // printf("%d local node %d (%d)\n", thrid, local_node, hwmalloc::numa().local_node());
 
         for (int i = 0; i < NITER; i++)
