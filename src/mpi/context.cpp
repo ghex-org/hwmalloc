@@ -33,5 +33,11 @@ context::make_region(void* ptr, std::size_t size) const
     return {m_comm, m_win, ptr, size};
 }
 
+region
+register_memory(context& c, void* ptr, std::size_t size)
+{
+    return c.make_region(ptr, size);
+}
+
 } // namespace mpi
 } // namespace hwmalloc

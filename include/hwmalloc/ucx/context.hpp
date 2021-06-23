@@ -86,11 +86,7 @@ struct context
     region make_region(void* ptr, std::size_t size) { return {m_ucp_context, ptr, size}; }
 };
 
-auto
-register_memory(context& c, void* ptr, std::size_t size)
-{
-    return c.make_region(ptr, size);
-}
+region register_memory(context& c, void* ptr, std::size_t size);
 
 } // namespace ucx
 } // namespace hwmalloc

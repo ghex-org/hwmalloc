@@ -82,11 +82,7 @@ class context
     auto get_window() const noexcept { return m_win; }
 };
 
-auto
-register_memory(context& c, void* ptr, std::size_t size)
-{
-    return c.make_region(ptr, size);
-}
+region register_memory(context& c, void* ptr, std::size_t size);
 
 } // namespace mpi
 } // namespace hwmalloc
