@@ -87,15 +87,15 @@ target_include_directories(hwmalloc PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 
 # ---------------------------------------------------------------------
-# Generate hwmalloc config file
-# ---------------------------------------------------------------------
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.hpp.in
-    ${PROJECT_BINARY_DIR}/include/hwmalloc/config.hpp @ONLY)
-
-# ---------------------------------------------------------------------
 # main src subdir
 # ---------------------------------------------------------------------
 add_subdirectory(src)
+
+# ---------------------------------------------------------------------
+# Generate hwmalloc config file
+# ---------------------------------------------------------------------
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/config.hpp.in
+    ${CMAKE_CURRENT_BINARY_DIR}/include/hwmalloc/config.hpp @ONLY)
 
 # ---------------------------------------------------------------------
 # testing
