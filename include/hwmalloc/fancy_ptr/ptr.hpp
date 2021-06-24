@@ -160,10 +160,10 @@ class hw_ptr
 
     reference& operator[](std::size_t n) const noexcept { return *(get() + n); }
 
-    void release()
-    {
-        m_ptr.m_data.release();
-    }
+    const auto& handle() const noexcept { return m_ptr.m_data.m_handle; }
+    auto&       handle() noexcept { return m_ptr.m_data.m_handle; }
+
+    void release() { m_ptr.m_data.release(); }
 };
 
 template<typename Block, typename VoidPtr>
