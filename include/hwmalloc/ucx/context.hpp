@@ -10,6 +10,7 @@
 #pragma once
 
 #include <hwmalloc/register.hpp>
+#include <hwmalloc/register_device.hpp>
 #include <hwmalloc/ucx/error.hpp>
 
 namespace hwmalloc
@@ -30,27 +31,8 @@ struct region
     std::size_t   m_size;
     ucp_mem_h     m_memh;
 
-    region(ucp_context_h ctxt, void* ptr, std::size_t size)
-    : m_ucp_context{ctxt}
-    , m_ptr{ptr}
-    , m_size{size}
-    {
-        ucp_mem_map_params_t params;
-
-        params.field_mask = UCP_MEM_MAP_PARAM_FIELD_ADDRESS | UCP_MEM_MAP_PARAM_FIELD_LENGTH
-            //| UCP_MEM_MAP_PARAM_FIELD_FLAGS
-            //| UCP_MEM_MAP_PARAM_FIELD_MEMORY_TYPE
-            ;
-
-        params.address = ptr;
-        params.length = size;
-
-        //ucs_status_t
-        HWMALLOC_CHECK_UCX_RESULT(ucp_mem_map(m_ucp_context, &params, &m_memh));
-    }
-
+    region(ucp_context_h ctxt, void* ptr, std::size_t size, bool gpu = false);
     region(region const&) = delete;
-
     region(region&& r) noexcept
     : m_ucp_context{r.m_ucp_context}
     , m_ptr{std::exchange(r.m_ptr, nullptr)}
@@ -58,7 +40,6 @@ struct region
     , m_memh{r.m_memh}
     {
     }
-
     ~region()
     {
         if (m_ptr) { ucp_mem_unmap(m_ucp_context, m_memh); }
@@ -83,10 +64,16 @@ struct context
     context(context&&) = delete;
     ~context() {}
 
-    region make_region(void* ptr, std::size_t size) { return {m_ucp_context, ptr, size}; }
+    region make_region(void* ptr, std::size_t size, bool gpu = false)
+    {
+        return {m_ucp_context, ptr, size, gpu};
+    }
 };
 
 region register_memory(context& c, void* ptr, std::size_t size);
+#if HWMALLOC_ENABLE_DEVICE
+region register_memory(context& c, void* ptr, std::size_t size);
+#endif
 
 } // namespace ucx
 } // namespace hwmalloc
