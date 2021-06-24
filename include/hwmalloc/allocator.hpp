@@ -40,6 +40,12 @@ class allocator
     std::size_t m_numa_node;
 
   public:
+    allocator()
+    {
+        m_heap = Heap::get_instance().get();
+        m_numa_node = 0;
+    }
+
     pointer allocate(size_type n) //, const_void_pointer = const_void_pointer())
     {
         return static_cast<pointer>(m_heap->allocate(n * sizeof(T), m_numa_node));

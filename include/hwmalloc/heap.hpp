@@ -170,6 +170,21 @@ class heap
 
     Context& context() noexcept { return *m_context; }
 
+    // --------------------------------------------------
+    // create a singleton ptr to a heap, thread-safe
+    static std::shared_ptr<heap> get_instance(Context* context = nullptr)
+    {
+        static std::mutex            heap_init_mutex_;
+        std::lock_guard<std::mutex>  lock(heap_init_mutex_);
+        static std::shared_ptr<heap> instance(nullptr);
+        if (!instance.get())
+        {
+            assert(context != nullptr);
+            instance.reset(new heap(context));
+        }
+        return instance;
+    }
+
     pointer allocate(std::size_t size, std::size_t numa_node)
     {
         if (size <= s_tiny_limit)
