@@ -46,6 +46,10 @@ class heap
     using const_pointer = hw_const_void_ptr<block_type>;
     template<typename T>
     using allocator_type = allocator<T, this_type>;
+    template<typename T>
+    using typed_pointer = typename allocator_type<T>::pointer;
+    template<typename T>
+    using unique_ptr = unique_ptr<T, block_type>;
 
     // There are 5 size classes that the heap uses. For each size class it relies on a
     // fixed_size_heap. The size classes are:
@@ -164,6 +168,8 @@ class heap
     heap(heap const&) = delete;
     heap(heap&&) = delete;
 
+    Context& context() noexcept { return *m_context; }
+
     pointer allocate(std::size_t size, std::size_t numa_node)
     {
         if (size <= s_tiny_limit)
@@ -222,23 +228,23 @@ class heap
 
     // scalar version
     template<typename T, typename... Args>
-    std::enable_if_t<!std::is_array<T>::value, unique_ptr<T, block_type>> make_unique(
+    std::enable_if_t<!std::is_array<T>::value, unique_ptr<T>> make_unique(
         std::size_t numa_node, Args&&... args)
     {
         auto ptr = allocate(sizeof(T), numa_node);
         new (ptr.get()) T(std::forward<Args>(args)...);
-        return unique_ptr<T, block_type>(static_cast<hw_ptr<T, block_type>>(ptr));
+        return unique_ptr<T>(static_cast<hw_ptr<T, block_type>>(ptr));
     }
 
     // array version
     template<typename T>
-    std::enable_if_t<std::is_array<T>::value, unique_ptr<T, block_type>> make_unique(
+    std::enable_if_t<std::is_array<T>::value, unique_ptr<T>> make_unique(
         std::size_t numa_node, std::size_t size)
     {
         using U = typename std::remove_extent<T>::type;
         auto ptr = allocate(sizeof(U) * size, numa_node);
         new (ptr.get()) U[size]();
-        return unique_ptr<T, block_type>(
+        return unique_ptr<T>(
             static_cast<hw_ptr<U, block_type>>(ptr), heap_delete<T, block_type>{size});
     }
 };

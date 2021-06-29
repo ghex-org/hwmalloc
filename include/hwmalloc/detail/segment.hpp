@@ -40,10 +40,13 @@ class segment
 
     struct block
     {
+        using handle_type = typename ::hwmalloc::detail::segment<Context>::handle_type;
         segment*    m_segment = nullptr;
         void*       m_ptr = nullptr;
         handle_type m_handle;
 #if HWMALLOC_ENABLE_DEVICE
+        using device_handle_type =
+            typename ::hwmalloc::detail::segment<Context>::device_handle_type;
         void*              m_device_ptr = nullptr;
         device_handle_type m_device_handle = device_handle_type();
 #endif

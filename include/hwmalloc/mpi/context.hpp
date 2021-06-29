@@ -18,10 +18,12 @@ namespace mpi
 {
 struct handle
 {
+    using key_type = MPI_Aint;
+
     void*       m_ptr;
     std::size_t m_size;
 
-    MPI_Aint get_remote_key() const noexcept
+    key_type get_remote_key() const noexcept
     {
         MPI_Aint address;
         HWMALLOC_CHECK_MPI_RESULT_NOEXCEPT(MPI_Get_address(m_ptr, &address));
@@ -78,8 +80,8 @@ class context
     context(context&&) = delete;
     ~context();
     region make_region(void* ptr, std::size_t size) const;
-
-    auto get_window() const noexcept { return m_win; }
+    auto   get_window() const noexcept { return m_win; }
+    auto   get_comm() const noexcept { return m_comm; }
 };
 
 region register_memory(context& c, void* ptr, std::size_t size);

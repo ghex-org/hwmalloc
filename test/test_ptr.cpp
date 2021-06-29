@@ -70,6 +70,8 @@ check_nullable_pointer()
 
 struct mock_block
 {
+    using handle_type = int;
+    using device_handle_type = int;
     void* m_ptr = nullptr;
     int   m_handle_cpu = 0;
 };

@@ -31,6 +31,12 @@ class hw_void_ptr
     template<typename T, typename B>
     friend class hw_ptr;
 
+  public:
+    using handle_type = typename Block::handle_type;
+#if HWMALLOC_ENABLE_DEVICE
+    using device_handle_type = typename Block::device_handle_type;
+#endif
+
   private:
     Block m_data;
 
@@ -74,6 +80,8 @@ class hw_void_ptr
 
     template<typename T>
     constexpr explicit operator hw_ptr<T, Block>() const noexcept;
+
+    void release() { m_data.release(); }
 };
 
 } // namespace hwmalloc
