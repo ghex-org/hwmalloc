@@ -1,4 +1,12 @@
 # ---------------------------------------------------------------------
+# compiler and linker flags
+# ---------------------------------------------------------------------
+function(hwmalloc_target_compile_options target)
+    set_target_properties(${target} PROPERTIES INTERFACE_POSITION_INDEPENDENT_CODE ON)
+    target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic)
+endfunction()
+
+# ---------------------------------------------------------------------
 # Function to create a config define with a given 'namespace'
 # This is useful for writing out a config file for a subdir
 # of a project so that cmake option changes only trigger rebuilds
