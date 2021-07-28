@@ -17,6 +17,7 @@ endif()
 
 function(reg_test t)
     add_executable(${t} ${t}.cpp)
+    hwmalloc_target_compile_options(${t})
     target_link_libraries(${t} PRIVATE gtest_main)
     target_link_libraries(${t} PRIVATE hwmalloc)
     target_link_libraries(${t} PRIVATE Boost::boost)
