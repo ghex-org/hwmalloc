@@ -72,7 +72,7 @@ class pool
             auto s = std::make_unique<segment_type>(this,
                 hwmalloc::register_memory(*m_context, a.ptr, a.size), a,
                 hwmalloc::register_device_memory(*m_context, device_ptr, a.size), device_ptr,
-                m_block_size, m_free_stack);
+                m_device_id, m_block_size, m_free_stack);
             m_segments[s.get()] = std::move(s);
             set_device_id(tmp);
         }
