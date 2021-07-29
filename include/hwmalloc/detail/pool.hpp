@@ -140,7 +140,20 @@ class pool
         if (!m_never_free && b.m_segment->is_empty())
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            if (b.m_segment->is_empty() && m_segments.size() > 1) m_segments.erase(b.m_segment);
+            if (b.m_segment->is_empty() && m_segments.size() > 1)
+            {
+#if HWMALLOC_ENABLE_DEVICE
+                if (m_allocate_on_device)
+                {
+                    const auto tmp = get_device_id();
+                    set_device_id(m_device_id);
+                    m_segments.erase(b.m_segment);
+                    set_device_id(tmp);
+                }
+                else
+#endif
+                    m_segments.erase(b.m_segment);
+            }
         }
     }
 };
