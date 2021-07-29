@@ -49,6 +49,9 @@ class segment
             typename ::hwmalloc::detail::segment<Context>::device_handle_type;
         void*              m_device_ptr = nullptr;
         device_handle_type m_device_handle = device_handle_type();
+        bool               on_device() const noexcept { return !((bool)m_device_ptr); }
+#else
+        bool on_device() const noexcept { return false; }
 #endif
 
         void release() const noexcept { m_segment->get_pool()->free(*this); }

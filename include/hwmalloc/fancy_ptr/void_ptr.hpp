@@ -76,6 +76,12 @@ class hw_void_ptr
 
     auto handle() const noexcept { return m_data.m_handle; }
 
+#if HWMALLOC_ENABLE_DEVICE
+    auto device_handle() const noexcept { return m_data.m_device_handle; }
+#endif
+
+    bool on_device() const noexcept { return m_data.on_device(); }
+
     constexpr operator bool() const noexcept { return (bool)m_data.m_ptr; }
 
     template<typename T>
