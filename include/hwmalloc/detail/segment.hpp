@@ -51,7 +51,7 @@ class segment
         device_handle_type m_device_handle = device_handle_type();
         int                m_device_id = 0;
 
-        bool on_device() const noexcept { return !((bool)m_device_ptr); }
+        bool on_device() const noexcept { return m_device_ptr; }
 #else
         bool on_device() const noexcept { return false; }
 #endif
