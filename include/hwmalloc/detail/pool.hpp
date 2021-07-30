@@ -134,6 +134,13 @@ class pool
         return b;
     }
 
+    auto register_user_allocation(void * const ptr, std::size_t const size)
+    {
+        auto region = hwmalloc::register_memory(*m_context, ptr, size, hwmalloc::registration_flags::memory_user);
+        block_type b = { nullptr, ptr, region.get_handle(0, size) };
+        return b;
+    }
+
     void free(block_type const& b)
     {
         b.m_segment->free(b);

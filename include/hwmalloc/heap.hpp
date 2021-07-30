@@ -200,6 +200,12 @@ class heap
         }
     }
 
+    pointer register_user_allocation(void * const ptr, std::size_t const size)
+    {
+        return {m_tiny_heaps[0]->register_user_allocation(ptr, size)};
+    }
+
+
 #if HWMALLOC_ENABLE_DEVICE
     pointer allocate(std::size_t size, std::size_t numa_node, int device_id)
     {
