@@ -23,7 +23,7 @@ namespace detail
 template<typename Context>
 struct region_traits
 {
-    using region_type = decltype(hwmalloc::register_memory(*((Context*)0), nullptr, 0u));
+    using region_type = decltype(hwmalloc::register_memory(*((Context*)0), nullptr, std::size_t{0}, hwmalloc::registration_flags{}));
 
     static_assert(!std::is_copy_constructible<region_type>::value, "region is copy constructible");
     static_assert(

@@ -66,6 +66,11 @@ class fixed_size_heap
 
     block_type allocate(std::size_t numa_node) { return m_pools[numa_node]->allocate(); }
 
+    block_type register_user_allocation(void * const ptr, std::size_t const size)
+    {
+        return m_pools[0]->register_user_allocation(ptr, size);
+    }
+
 #if HWMALLOC_ENABLE_DEVICE
     block_type allocate(std::size_t numa_node, int device_id)
     {

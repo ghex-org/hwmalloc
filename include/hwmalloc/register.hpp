@@ -63,16 +63,21 @@ namespace hwmalloc
 // +---------------------+----------------+-------------------------------------------------------+
 //
 
+enum registration_flags : uint32_t
+{
+    memory_user = 1,
+};
+
 namespace detail
 {
 struct register_fn
 {
     template<typename Context>
-    constexpr auto operator()(Context&& c, void* ptr, std::size_t size) const
-        noexcept(noexcept(register_memory(std::forward<Context>(c), ptr, size)))
-            -> decltype(register_memory(std::forward<Context>(c), ptr, size))
+    constexpr auto operator()(Context&& c, void * const ptr, std::size_t size, registration_flags flags={}) const
+        noexcept(noexcept(register_memory(std::forward<Context>(c), ptr, size, flags)))
+            -> decltype(register_memory(std::forward<Context>(c), ptr, size, flags))
     {
-        return register_memory(std::forward<Context>(c), ptr, size);
+        return register_memory(std::forward<Context>(c), ptr, size, flags);
     }
 };
 } // namespace detail
@@ -81,7 +86,7 @@ template<class T>
 constexpr T static_const_v{};
 namespace
 {
-constexpr auto const& register_memory = static_const_v<detail::register_fn>;
+    constexpr auto const& register_memory = static_const_v<detail::register_fn>;
 }
 
 } // namespace hwmalloc

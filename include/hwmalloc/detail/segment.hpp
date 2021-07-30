@@ -56,7 +56,10 @@ class segment
         bool on_device() const noexcept { return false; }
 #endif
 
-        void release() const noexcept { m_segment->get_pool()->free(*this); }
+        void release() const noexcept {
+            // user registered memory has nullptr segment
+            if (m_segment) m_segment->get_pool()->free(*this);
+        }
     };
 
     struct allocation_holder
