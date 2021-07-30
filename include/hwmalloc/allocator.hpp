@@ -46,6 +46,12 @@ class allocator
         m_numa_node = 0;
     }
 
+    // provide initializing constructor to help compiler
+    allocator(Heap *heap, std::size_t numa_node)
+        : m_heap{heap}
+        , m_numa_node{numa_node}
+    {}
+
     pointer allocate(size_type n) //, const_void_pointer = const_void_pointer())
     {
         return static_cast<pointer>(m_heap->allocate(n * sizeof(T), m_numa_node));
