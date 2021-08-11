@@ -23,4 +23,8 @@ void* device_malloc(std::size_t size);
 
 void device_free(void* ptr) noexcept;
 
+void memcpy_to_device(void* dst, void const* src, std::size_t count);
+
+void memcpy_to_host(void* dst, void const* src, std::size_t count);
+
 } // namespace hwmalloc

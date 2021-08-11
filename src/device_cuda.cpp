@@ -62,4 +62,24 @@ device_free(void* ptr) noexcept
     cudaFree(ptr);
 }
 
+void
+memcpy_to_device(void* dst, void const* src, std::size_t count)
+{
+    cudaStream_t stream;
+    HWMALLOC_CHECK_CUDA_RESULT(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaMemcpyAsync(dst, src, count, cudaMemcpyHostToDevice, stream));
+    while (cudaSuccess != cudaStreamQuery(stream)) {}
+    HWMALLOC_CHECK_CUDA_RESULT(cudaStreamDestroy(stream));
+}
+
+void
+memcpy_to_host(void* dst, void const* src, std::size_t count)
+{
+    cudaStream_t stream;
+    HWMALLOC_CHECK_CUDA_RESULT(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaMemcpyAsync(dst, src, count, cudaMemcpyDeviceToHost, stream));
+    while (cudaSuccess != cudaStreamQuery(stream)) {}
+    HWMALLOC_CHECK_CUDA_RESULT(cudaStreamDestroy(stream));
+}
+
 } // namespace hwmalloc
