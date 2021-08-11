@@ -16,4 +16,6 @@ if (HWMALLOC_ENABLE_DEVICE)
     endif()
 
     target_sources(hwmalloc PRIVATE device_${HWMALLOC_DEVICE_RUNTIME}.cpp)
+else()
+    set(HWMALLOC_DEVICE "HWMALLOC_DEVICE_NONE" CACHE INTERNAL "" FORCE)
 endif()
