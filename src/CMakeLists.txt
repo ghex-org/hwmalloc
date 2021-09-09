@@ -12,7 +12,7 @@ if (HWMALLOC_ENABLE_DEVICE)
         find_package(CUDAToolkit REQUIRED)
         target_link_libraries(hwmalloc PRIVATE CUDA::cudart)
     else()
-        # link to hip
+        target_link_libraries(hwmalloc PRIVATE hip::device)
     endif()
 
     target_sources(hwmalloc PRIVATE device_${HWMALLOC_DEVICE_RUNTIME}.cpp)
