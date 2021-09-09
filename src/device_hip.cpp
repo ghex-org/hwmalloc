@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <hwmalloc/device.hpp>
-#include <hip_runtime_api.h>
+#include <hip/hip_runtime.h>
 #include <stdexcept>
 #include <string>
 #define HWMALLOC_CHECK_HIP_RESULT(x)                                                               \
