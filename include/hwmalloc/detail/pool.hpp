@@ -1,5 +1,5 @@
 /*
- * GridTools
+ * ghex-org
  *
  * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
@@ -72,7 +72,7 @@ class pool
             auto s = std::make_unique<segment_type>(this,
                 hwmalloc::register_memory(*m_context, a.ptr, a.size), a,
                 hwmalloc::register_device_memory(*m_context, device_ptr, a.size), device_ptr,
-                m_block_size, m_free_stack);
+                m_device_id, m_block_size, m_free_stack);
             m_segments[s.get()] = std::move(s);
             set_device_id(tmp);
         }
@@ -112,12 +112,12 @@ class pool
     {
         block_type b;
         if (m_free_stack.pop(b)) return b;
-        while (!m_mutex.try_lock())
-            if (m_free_stack.pop(b))
-            {
-                m_mutex.unlock();
-                return b;
-            }
+        m_mutex.lock();
+        if (m_free_stack.pop(b))
+        {
+            m_mutex.unlock();
+            return b;
+        }
         for (auto& kvp : m_segments) kvp.first->collect(m_free_stack);
         if (m_free_stack.pop(b))
         {
@@ -140,7 +140,20 @@ class pool
         if (!m_never_free && b.m_segment->is_empty())
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            if (b.m_segment->is_empty() && m_segments.size() > 1) m_segments.erase(b.m_segment);
+            if (b.m_segment->is_empty() && m_segments.size() > 1)
+            {
+#if HWMALLOC_ENABLE_DEVICE
+                if (m_allocate_on_device)
+                {
+                    const auto tmp = get_device_id();
+                    set_device_id(m_device_id);
+                    m_segments.erase(b.m_segment);
+                    set_device_id(tmp);
+                }
+                else
+#endif
+                    m_segments.erase(b.m_segment);
+            }
         }
     }
 };

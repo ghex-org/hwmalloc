@@ -11,17 +11,12 @@ if (HWMALLOC_ENABLE_DEVICE)
     if (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "cuda")
         find_package(CUDAToolkit REQUIRED)
         target_link_libraries(hwmalloc PRIVATE CUDA::cudart)
-    else()
-        # link to hip
+    elseif (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "hip")
+        find_package(hip REQUIRED)
+        target_link_libraries(hwmalloc PRIVATE hip::device)
     endif()
 
     target_sources(hwmalloc PRIVATE device_${HWMALLOC_DEVICE_RUNTIME}.cpp)
-endif()
-
-if(HWMALLOC_WITH_MPI)
-    add_subdirectory(mpi)
-endif()
-
-if(HWMALLOC_WITH_UCX)
-    add_subdirectory(ucx)
+else()
+    set(HWMALLOC_DEVICE "HWMALLOC_DEVICE_NONE" CACHE INTERNAL "" FORCE)
 endif()

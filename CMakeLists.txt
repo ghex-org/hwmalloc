@@ -11,7 +11,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if(NOT CMAKE_BUILD_TYPE) # AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build." FORCE)
     set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
-    set_property(CACHE CMAKE_CXX_FLAGS PROPERTY VALUE "-Wall -Wextra -Wpedantic")
 endif()
 
 set(HWMALLOC_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -20,10 +19,10 @@ list(APPEND CMAKE_MODULE_PATH "${HWMALLOC_MODULE_PATH}")
 # ---------------------------------------------------------------------
 # Define main hwmalloc library
 # ---------------------------------------------------------------------
-add_library(hwmalloc SHARED)
-#add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
-set_target_properties(hwmalloc PROPERTIES INTERFACE_POSITION_INDEPENDENT_CODE ON)
 include(hwmalloc_macros)
+add_library(hwmalloc SHARED)
+hwmalloc_target_compile_options(hwmalloc)
+#add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
 
 # ---------------------------------------------------------------------
 # NUMA setup
@@ -40,38 +39,6 @@ endif()
 # ---------------------------------------------------------------------
 find_package(Boost REQUIRED)
 target_link_libraries(hwmalloc PRIVATE Boost::boost)
-
-# ---------------------------------------------------------------------
-# MPI setup
-# ---------------------------------------------------------------------
-include(hwmalloc_mpi)
-if (HWMALLOC_WITH_MPI)
-    target_link_libraries(hwmalloc PRIVATE MPI::MPI_CXX)
-    install(FILES ${PROJECT_BINARY_DIR}/include/hwmalloc/mpi/config.hpp
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hwmalloc/mpi)
-endif()
-
-# ---------------------------------------------------------------------
-# UCX setup
-# ---------------------------------------------------------------------
-include(hwmalloc_ucx)
-if (HWMALLOC_WITH_UCX)
-    target_link_libraries(hwmalloc PRIVATE UCP::libucp)
-    install(FILES ${PROJECT_BINARY_DIR}/include/hwmalloc/ucx/config.hpp
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hwmalloc/ucx)
-endif()
-
-# ---------------------------------------------------------------------
-# Libfabric setup
-# Can be simplified as this is copied from hpx and options obsolete
-# but the config files with namespaces are very useful in big projects
-# ---------------------------------------------------------------------
-include(hwmalloc_libfabric)
-if (HWMALLOC_WITH_LIBFABRIC)
-    target_link_libraries(hwmalloc PRIVATE libfabric::libfabric)
-    install(FILES ${PROJECT_BINARY_DIR}/include/hwmalloc/libfabric/config.hpp
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/hwmalloc/libfabric)
-endif()
 
 # ---------------------------------------------------------------------
 # GPU device support
@@ -139,8 +106,6 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/HWMALLOCConfig.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/HWMALLOCConfigVersion.cmake
         ${CMAKE_CURRENT_LIST_DIR}/cmake/FindNUMA.cmake
-        ${CMAKE_CURRENT_LIST_DIR}/cmake/FindLibfabric.cmake
-        ${CMAKE_CURRENT_LIST_DIR}/cmake/FindUCP.cmake
     DESTINATION
         ${CMAKE_INSTALL_LIBDIR}/cmake)
 export(EXPORT HWMALLOC-targets

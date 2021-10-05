@@ -1,5 +1,5 @@
 /*
- * GridTools
+ * ghex-org
  *
  * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
@@ -22,5 +22,9 @@ void set_device_id(int id);
 void* device_malloc(std::size_t size);
 
 void device_free(void* ptr) noexcept;
+
+void memcpy_to_device(void* dst, void const* src, std::size_t count);
+
+void memcpy_to_host(void* dst, void const* src, std::size_t count);
 
 } // namespace hwmalloc

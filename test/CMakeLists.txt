@@ -17,13 +17,17 @@ endif()
 
 function(reg_test t)
     add_executable(${t} ${t}.cpp)
+    hwmalloc_target_compile_options(${t})
     target_link_libraries(${t} PRIVATE gtest_main)
     target_link_libraries(${t} PRIVATE hwmalloc)
     target_link_libraries(${t} PRIVATE Boost::boost)
     add_test(NAME ${t} COMMAND $<TARGET_FILE:${t}>)
 endfunction()
 
-reg_test(test_numa)
+set(HWMALLOC_DISABLE_NUMA_TEST OFF CACHE BOOL "disable numa test (for docker images)")
+if (NOT HWMALLOC_DISABLE_NUMA_TEST)
+    reg_test(test_numa)
+endif()
 reg_test(test_ptr)
 reg_test(test_segment)
 
@@ -34,16 +38,4 @@ target_link_libraries(test_omp PRIVATE NUMA::libnuma)
 
 if (HWMALLOC_ENABLE_DEVICE)
 reg_test(test_device)
-endif()
-
-if (HWMALLOC_WITH_MPI OR HWMALLOC_WITH_UCX)
-    add_subdirectory(mpi_runner)
-endif()
-
-if (HWMALLOC_WITH_MPI)
-    add_subdirectory(mpi)
-endif()
-
-if (HWMALLOC_WITH_UCX)
-    add_subdirectory(ucx)
 endif()

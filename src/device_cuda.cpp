@@ -1,5 +1,5 @@
 /*
- * GridTools
+ * ghex-org
  *
  * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
@@ -9,11 +9,6 @@
  */
 #include <hwmalloc/device.hpp>
 #include <cuda_runtime.h>
-
-//#ifdef NDEBUG
-//#define HWMALLOC_CHECK_CUDA_RESULT(x) x;
-//#else
-
 #include <stdexcept>
 #include <string>
 #define HWMALLOC_CHECK_CUDA_RESULT(x)                                                              \
@@ -21,8 +16,6 @@
         throw std::runtime_error("hwmalloc error: CUDA Call failed " + std::string(#x) + " (" +    \
                                  std::string(cudaGetErrorString(x)) + ") in " +                    \
                                  std::string(__FILE__) + ":" + std::to_string(__LINE__));
-
-//#endif
 
 namespace hwmalloc
 {
@@ -60,6 +53,34 @@ void
 device_free(void* ptr) noexcept
 {
     cudaFree(ptr);
+}
+
+void
+memcpy_to_device(void* dst, void const* src, std::size_t count)
+{
+    cudaStream_t stream;
+    HWMALLOC_CHECK_CUDA_RESULT(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaMemcpyAsync(dst, src, count, cudaMemcpyHostToDevice, stream));
+    cudaEvent_t done;
+    HWMALLOC_CHECK_CUDA_RESULT(
+        cudaEventCreateWithFlags(&done, /*cudaEventBlockingSync |*/ cudaEventDisableTiming));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaEventRecord(done, stream));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaEventSynchronize(done));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaEventDestroy(done));
+}
+
+void
+memcpy_to_host(void* dst, void const* src, std::size_t count)
+{
+    cudaStream_t stream;
+    HWMALLOC_CHECK_CUDA_RESULT(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaMemcpyAsync(dst, src, count, cudaMemcpyDeviceToHost, stream));
+    cudaEvent_t done;
+    HWMALLOC_CHECK_CUDA_RESULT(
+        cudaEventCreateWithFlags(&done, /*cudaEventBlockingSync |*/ cudaEventDisableTiming));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaEventRecord(done, stream));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaEventSynchronize(done));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaEventDestroy(done));
 }
 
 } // namespace hwmalloc

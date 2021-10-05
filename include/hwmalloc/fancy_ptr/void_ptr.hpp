@@ -1,5 +1,5 @@
 /*
- * GridTools
+ * ghex-org
  *
  * Copyright (c) 2014-2021, ETH Zurich
  * All rights reserved.
@@ -70,11 +70,17 @@ class hw_void_ptr
 
     constexpr VoidPtr get() const noexcept { return m_data.m_ptr; }
 
+    auto handle() const noexcept { return m_data.m_handle; }
+
 #if HWMALLOC_ENABLE_DEVICE
     constexpr VoidPtr device_ptr() const noexcept { return m_data.m_device_ptr; }
+
+    auto device_handle() const noexcept { return m_data.m_device_handle; }
+
+    int device_id() const noexcept { return m_data.m_device_id; }
 #endif
 
-    auto handle() const noexcept { return m_data.m_handle; }
+    bool on_device() const noexcept { return m_data.on_device(); }
 
     constexpr operator bool() const noexcept { return (bool)m_data.m_ptr; }
 
