@@ -24,7 +24,10 @@ function(reg_test t)
     add_test(NAME ${t} COMMAND $<TARGET_FILE:${t}>)
 endfunction()
 
-reg_test(test_numa)
+set(HWMALLOC_DISABLE_NUMA_TEST OFF CACHE BOOL "disable numa test (for docker images)")
+if (NOT HWMALLOC_DISABLE_NUMA_TEST)
+    reg_test(test_numa)
+endif()
 reg_test(test_ptr)
 reg_test(test_segment)
 

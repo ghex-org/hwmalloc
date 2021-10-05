@@ -27,6 +27,7 @@ jobs:
             -DHWMALLOC_ENABLE_DEVICE=ON \
             -DHWMALLOC_DEVICE_RUNTIME=emulate \
             -DHWMALLOC_WITH_TESTING=ON \
+            -DHWMALLOC_DISABLE_NUMA_TEST=ON \
             ..
       - name: Build
         run: cmake --build build --parallel 2
