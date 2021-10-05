@@ -16,6 +16,7 @@
 #include <hwmalloc/allocator.hpp>
 #include <vector>
 #include <unordered_map>
+#include <cstdlib>
 
 namespace hwmalloc
 {
@@ -38,6 +39,10 @@ class heap
 {
   public:
     using this_type = heap<Context>;
+    using region_type = typename detail::region_traits<Context>::region_type;
+#if HWMALLOC_ENABLE_DEVICE
+    using device_region_type = typename detail::region_traits<Context>::device_region_type;
+#endif
     using fixed_size_heap_type = detail::fixed_size_heap<Context>;
     using block_type = typename fixed_size_heap_type::block_type;
     using heap_vector = std::vector<std::unique_ptr<fixed_size_heap_type>>;
@@ -131,13 +136,17 @@ class heap
     }
 
   private:
-    Context*    m_context;
-    std::size_t m_max_size;
-    bool        m_never_free;
-    heap_vector m_tiny_heaps;
-    heap_vector m_heaps;
-    heap_map    m_huge_heaps;
-    std::mutex  m_mutex;
+    Context*                 m_context;
+    std::size_t              m_max_size;
+    bool                     m_never_free;
+    heap_vector              m_tiny_heaps;
+    heap_vector              m_heaps;
+    heap_map                 m_huge_heaps;
+    std::mutex               m_mutex;
+    std::vector<region_type> m_user_regions;
+#if HWMALLOC_ENABLE_DEVICE
+    std::vector<device_region_type> m_user_device_regions;
+#endif
 
   public:
     heap(Context* context, std::size_t max_size = s_large_limit * 2, bool never_free = false)
@@ -170,6 +179,21 @@ class heap
 
     Context& context() noexcept { return *m_context; }
 
+    // --------------------------------------------------
+    // create a singleton ptr to a heap, thread-safe
+    static std::shared_ptr<heap> get_instance(Context* context = nullptr)
+    {
+        static std::mutex            heap_init_mutex_;
+        std::lock_guard<std::mutex>  lock(heap_init_mutex_);
+        static std::shared_ptr<heap> instance(nullptr);
+        if (!instance.get())
+        {
+            assert(context != nullptr);
+            instance.reset(new heap(context));
+        }
+        return instance;
+    }
+
     pointer allocate(std::size_t size, std::size_t numa_node)
     {
         if (size <= s_tiny_limit)
@@ -189,6 +213,13 @@ class heap
             }
             return {h->allocate(numa_node)};
         }
+    }
+
+    pointer register_user_allocation(void* /*const*/ ptr, std::size_t size)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_user_regions.push_back(hwmalloc::register_memory(*m_context, ptr, size));
+        return {block_type{nullptr, ptr, m_user_regions.back().get_handle(0, size)}};
     }
 
 #if HWMALLOC_ENABLE_DEVICE
@@ -211,6 +242,17 @@ class heap
             }
             return {h->allocate(numa_node, device_id)};
         }
+    }
+
+    pointer register_user_allocation(void* device_ptr, int device_id, std::size_t size)
+    {
+        void*                       ptr = std::malloc(size);
+        std::lock_guard<std::mutex> lock(m_mutex);
+        m_user_regions.push_back(hwmalloc::register_memory(*m_context, ptr, size));
+        m_user_device_regions.push_back(
+            hwmalloc::register_device_memory(*m_context, device_ptr, size));
+        return {block_type{nullptr, ptr, m_user_regions.back().get_handle(0, size), device_ptr,
+            m_user_device_regions.back().get_handle(0, size), device_id}};
     }
 #endif
 

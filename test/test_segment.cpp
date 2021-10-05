@@ -170,3 +170,18 @@ TEST(heap, allocator)
 
     vec.resize(500);
 }
+
+TEST(heap, user_allocation)
+{
+    using heap_t = hwmalloc::heap<context>;
+
+    context c;
+
+    heap_t h(&c);
+
+    std::vector<double> data(100);
+
+    auto ptr = h.register_user_allocation(&data[0], data.size()*sizeof(double));
+    std::cout << ptr.get() << std::endl;
+    h.free(ptr); // should have no effect
+}
