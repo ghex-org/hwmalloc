@@ -1,3 +1,4 @@
+[![CI](https://github.com/ghex-org/hwmalloc/actions/workflows/CI.yml/badge.svg)](https://github.com/ghex-org/hwmalloc/actions/workflows/CI.yml)
 # hwmalloc
 
 This library provides a thread-safe [heap class](include/hwmalloc/heap.hpp) for allocating memory on
