@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches:
+      - master
+      - oomph_integration
+
+jobs:
+  build-cpu-mpi:
+    runs-on: ubuntu-latest
+    container: ghcr.io/gridtools/gridtools-base:gcc-11
+    steps:
+      - uses: actions/checkout@v1
+      - name: Configure
+        run: |
+          echo "WORKFLOW"
+          export SHLVL=1
+          env
+          ulimit -a
+          ipcs -lm
+          df
+          cat /proc/cpuinfo
+          mkdir -p build && cd build
+          cmake \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DHWMALLOC_ENABLE_DEVICE=ON \
+            -DHWMALLOC_DEVICE_RUNTIME=emulate \
+            -DHWMALLOC_WITH_TESTING=ON \
+            -DHWMALLOC_DISABLE_NUMA_TEST=ON \
+            ..
+      - name: Build
+        run: cmake --build build --parallel 2
+      - name: Execute tests
+        run: cd build && export SHLVL=1 && export CTEST_OUTPUT_ON_FAILURE=1 && env && ctest

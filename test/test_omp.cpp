@@ -1,3 +1,12 @@
+/*
+ * ghex-org
+ *
+ * Copyright (c) 2014-2021, ETH Zurich
+ * All rights reserved.
+ *
+ * Please, refer to the LICENSE file in the root directory.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
 #include <gtest/gtest.h>
 
 #include <hwmalloc/detail/segment.hpp>
@@ -77,9 +86,9 @@ TEST(spread, neverfree)
         pointers.resize(NBUFFERS);
 
         bitmask* nodemask;
-        int             nnodes = hwmalloc::numa().num_host_nodes();
-        int             thr_per_node = nthr / nnodes;
-        int             local_node = thrid % nnodes;
+        int      nnodes = hwmalloc::numa().num_host_nodes();
+        int      thr_per_node = nthr / nnodes;
+        int      local_node = thrid % nnodes;
 
         if (thr_per_node == 0)
         {
