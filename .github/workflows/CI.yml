@@ -8,7 +8,7 @@ on:
       - oomph_integration
 
 jobs:
-  build-cpu-mpi:
+  build-cpu:
     runs-on: ubuntu-latest
     container: ghcr.io/gridtools/gridtools-base:gcc-11
     steps:
@@ -34,3 +34,53 @@ jobs:
         run: cmake --build build --parallel 2
       - name: Execute tests
         run: cd build && export SHLVL=1 && export CTEST_OUTPUT_ON_FAILURE=1 && env && ctest
+
+  build-cuda:
+    runs-on: ubuntu-latest
+    container: ghcr.io/gridtools/gridtools-base:gcc-10-cuda-11
+    steps:
+      - uses: actions/checkout@v1
+      - name: Configure
+        run: |
+          echo "WORKFLOW"
+          export SHLVL=1
+          env
+          ulimit -a
+          ipcs -lm
+          df
+          cat /proc/cpuinfo
+          mkdir -p build && cd build
+          cmake \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DHWMALLOC_ENABLE_DEVICE=ON \
+            -DHWMALLOC_DEVICE_RUNTIME=cuda \
+            -DHWMALLOC_WITH_TESTING=ON \
+            -DHWMALLOC_DISABLE_NUMA_TEST=ON \
+            ..
+      - name: Build
+        run: cmake --build build --parallel 2
+
+  build-hip:
+    runs-on: ubuntu-latest
+    container: ghcr.io/gridtools/gridtools-base:base-hip
+    steps:
+      - uses: actions/checkout@v1
+      - name: Configure
+        run: |
+          echo "WORKFLOW"
+          export SHLVL=1
+          env
+          ulimit -a
+          ipcs -lm
+          df
+          cat /proc/cpuinfo
+          mkdir -p build && cd build
+          CXX=/opt/rocm/llvm/bin/clang++ cmake .. \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DHWMALLOC_ENABLE_DEVICE=ON \
+            -DHWMALLOC_DEVICE_RUNTIME=hip \
+            -DHWMALLOC_WITH_TESTING=ON \
+            -DHWMALLOC_DISABLE_NUMA_TEST=ON \
+            ..
+      - name: Build
+        run: cmake --build build --parallel 2
