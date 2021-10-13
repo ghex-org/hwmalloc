@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <hwmalloc/detail/user_allocation.hpp>
 #include <hwmalloc/detail/fixed_size_heap.hpp>
 #include <hwmalloc/fancy_ptr/void_ptr.hpp>
 #include <hwmalloc/fancy_ptr/const_void_ptr.hpp>
@@ -16,7 +17,6 @@
 #include <hwmalloc/allocator.hpp>
 #include <vector>
 #include <unordered_map>
-#include <cstdlib>
 
 namespace hwmalloc
 {
@@ -136,44 +136,13 @@ class heap
     }
 
   private:
-    struct user_allocation
-    {
-        void* m_ptr;
-        user_allocation(void* ptr) noexcept
-        : m_ptr{ptr}
-        {
-        }
-        user_allocation(user_allocation const&) noexcept = delete;
-        user_allocation& operator=(user_allocation const&) noexcept = delete;
-        user_allocation(user_allocation&& other) noexcept
-        : m_ptr{std::exchange(other.m_ptr, nullptr)}
-        {
-        }
-        user_allocation& operator=(user_allocation&& other) noexcept
-        {
-            if (m_ptr) std::free(m_ptr);
-            m_ptr = std::exchange(other.m_ptr, nullptr);
-            return *this;
-        }
-        ~user_allocation()
-        {
-            if (m_ptr) std::free(m_ptr);
-        }
-    };
-
-  private:
-    Context*                     m_context;
-    std::size_t                  m_max_size;
-    bool                         m_never_free;
-    heap_vector                  m_tiny_heaps;
-    heap_vector                  m_heaps;
-    heap_map                     m_huge_heaps;
-    std::mutex                   m_mutex;
-    std::vector<user_allocation> m_user_allocations;
-    std::vector<region_type>     m_user_regions;
-#if HWMALLOC_ENABLE_DEVICE
-    std::vector<device_region_type> m_user_device_regions;
-#endif
+    Context*    m_context;
+    std::size_t m_max_size;
+    bool        m_never_free;
+    heap_vector m_tiny_heaps;
+    heap_vector m_heaps;
+    heap_map    m_huge_heaps;
+    std::mutex  m_mutex;
 
   public:
     heap(Context* context, std::size_t max_size = s_large_limit * 2, bool never_free = false)
@@ -244,9 +213,8 @@ class heap
 
     pointer register_user_allocation(void* ptr, std::size_t size)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_user_regions.push_back(hwmalloc::register_memory(*m_context, ptr, size));
-        return {block_type{nullptr, ptr, m_user_regions.back().get_handle(0, size)}};
+        auto a = new detail::user_allocation<Context>{m_context, ptr, size};
+        return {block_type{nullptr, a, ptr, a->m_region.get_handle(0, size)}};
     }
 
 #if HWMALLOC_ENABLE_DEVICE
@@ -273,23 +241,16 @@ class heap
 
     pointer register_user_allocation(void* device_ptr, int device_id, std::size_t size)
     {
-        void* ptr;
-        {
-            std::lock_guard<std::mutex> lock(m_mutex);
-            m_user_allocations.push_back(user_allocation{std::malloc(size)});
-            ptr = m_user_allocations.back().m_ptr;
-        }
-        return register_user_allocation(ptr, device_ptr, device_id, size);
+        auto a = new detail::user_allocation<Context>{m_context, device_ptr, device_id, size};
+        return {block_type{nullptr, a, a->m_host_allocation.m_ptr, a->m_region.get_handle(0, size),
+            device_ptr, a->m_device_region->get_handle(0, size), device_id}};
     }
 
     pointer register_user_allocation(void* ptr, void* device_ptr, int device_id, std::size_t size)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_user_regions.push_back(hwmalloc::register_memory(*m_context, ptr, size));
-        m_user_device_regions.push_back(
-            hwmalloc::register_device_memory(*m_context, device_ptr, size));
-        return {block_type{nullptr, ptr, m_user_regions.back().get_handle(0, size), device_ptr,
-            m_user_device_regions.back().get_handle(0, size), device_id}};
+        auto a = new detail::user_allocation<Context>{m_context, ptr, device_ptr, device_id, size};
+        return {block_type{nullptr, a, ptr, a->m_region.get_handle(0, size), device_ptr,
+            a->m_device_region->get_handle(0, size), device_id}};
     }
 #endif
 
@@ -318,7 +279,7 @@ class heap
     // array version
     template<typename T>
     std::enable_if_t<std::is_array<T>::value, unique_ptr<T>> make_unique(std::size_t numa_node,
-        std::size_t size)
+        std::size_t                                                                  size)
     {
         using U = typename std::remove_extent<T>::type;
         auto ptr = allocate(sizeof(U) * size, numa_node);
