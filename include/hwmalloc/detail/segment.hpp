@@ -159,9 +159,11 @@ class segment
     template<typename Stack>
     std::size_t collect(Stack& stack)
     {
-        const auto consumed = m_freed_stack.consume_all([&stack](block const& b) {
-            while (!stack.push(b)) {}
-        });
+        const auto consumed = m_freed_stack.consume_all(
+            [&stack](block const& b)
+            {
+                while (!stack.push(b)) {}
+            });
         m_num_freed.fetch_sub(consumed);
         return consumed;
     }
