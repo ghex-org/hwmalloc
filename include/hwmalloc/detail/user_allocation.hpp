@@ -73,7 +73,7 @@ struct user_allocation
     }
 
 #if HWMALLOC_ENABLE_DEVICE
-    user_allocation(Context* context, void* device_ptr, int device_id, std::size_t size)
+    user_allocation(Context* context, void* device_ptr, int /*device_id*/, std::size_t size)
     : m_host_allocation{std::malloc(size), true}
     , m_region{hwmalloc::register_memory(*context, m_host_allocation.m_ptr, size)}
     , m_device_region{std::make_unique<device_region_type>(
@@ -81,7 +81,7 @@ struct user_allocation
     {
     }
 
-    user_allocation(Context* context, void* ptr, void* device_ptr, int device_id, std::size_t size)
+    user_allocation(Context* context, void* ptr, void* device_ptr, int /*device_id*/, std::size_t size)
     : m_host_allocation{ptr, false}
     , m_region{hwmalloc::register_memory(*context, ptr, size)}
     , m_device_region{std::make_unique<device_region_type>(
