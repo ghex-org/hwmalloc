@@ -285,7 +285,7 @@ class heap
     // array version
     template<typename T>
     std::enable_if_t<std::is_array<T>::value, unique_ptr<T>> make_unique(std::size_t numa_node,
-        std::size_t                                                                  size)
+        std::size_t size)
     {
         using U = typename std::remove_extent<T>::type;
         auto ptr = allocate(sizeof(U) * size, numa_node);
