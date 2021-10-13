@@ -146,13 +146,13 @@ class heap
         user_allocation(user_allocation const&) noexcept = delete;
         user_allocation& operator=(user_allocation const&) noexcept = delete;
         user_allocation(user_allocation&& other) noexcept
-        : m_ptr{std::exchange(other.ptr, nullptr)}
+        : m_ptr{std::exchange(other.m_ptr, nullptr)}
         {
         }
         user_allocation& operator=(user_allocation&& other) noexcept
         {
             if (m_ptr) std::free(m_ptr);
-            m_ptr = std::exchange(other.ptr, nullptr);
+            m_ptr = std::exchange(other.m_ptr, nullptr);
             return *this;
         }
         ~user_allocation()
