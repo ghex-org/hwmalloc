@@ -136,14 +136,41 @@ class heap
     }
 
   private:
-    Context*                 m_context;
-    std::size_t              m_max_size;
-    bool                     m_never_free;
-    heap_vector              m_tiny_heaps;
-    heap_vector              m_heaps;
-    heap_map                 m_huge_heaps;
-    std::mutex               m_mutex;
-    std::vector<region_type> m_user_regions;
+    struct user_allocation
+    {
+        void* m_ptr;
+        user_allocation(void* ptr) noexcept
+        : m_ptr{ptr}
+        {
+        }
+        user_allocation(user_allocation const&) noexcept = delete;
+        user_allocation& operator=(user_allocation const&) noexcept = delete;
+        user_allocation(user_allocation&& other) noexcept
+        : m_ptr{std::exchange(other.ptr, nullptr)}
+        {
+        }
+        user_allocation& operator=(user_allocation&& other) noexcept
+        {
+            if (m_ptr) std::free(m_ptr);
+            m_ptr = std::exchange(other.ptr, nullptr);
+            return *this;
+        }
+        ~user_allocation()
+        {
+            if (m_ptr) std::free(m_ptr);
+        }
+    };
+
+  private:
+    Context*                     m_context;
+    std::size_t                  m_max_size;
+    bool                         m_never_free;
+    heap_vector                  m_tiny_heaps;
+    heap_vector                  m_heaps;
+    heap_map                     m_huge_heaps;
+    std::mutex                   m_mutex;
+    std::vector<user_allocation> m_user_allocations;
+    std::vector<region_type>     m_user_regions;
 #if HWMALLOC_ENABLE_DEVICE
     std::vector<device_region_type> m_user_device_regions;
 #endif
@@ -246,7 +273,13 @@ class heap
 
     pointer register_user_allocation(void* device_ptr, int device_id, std::size_t size)
     {
-        return register_user_allocation(std::malloc(size), device_ptr, device_id, size);
+        void* ptr;
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_user_allocations.push_back(user_allocation{std::malloc(size)});
+            ptr = m_user_allocations.back().m_ptr;
+        }
+        return register_user_allocation(ptr, device_ptr, device_id, size);
     }
 
     pointer register_user_allocation(void* ptr, void* device_ptr, int device_id, std::size_t size)
