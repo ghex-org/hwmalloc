@@ -9,7 +9,7 @@
  */
 #pragma once
 
-#include <hwmalloc/detail/region_traits.hpp>
+#include <hwmalloc/detail/block.hpp>
 #include <hwmalloc/numa.hpp>
 #if HWMALLOC_ENABLE_DEVICE
 #include <hwmalloc/device.hpp>
@@ -32,32 +32,10 @@ class segment
     using pool_type = pool<Context>;
     using region_traits_type = region_traits<Context>;
     using region_type = typename region_traits_type::region_type;
-    using handle_type = typename region_traits_type::handle_type;
 #if HWMALLOC_ENABLE_DEVICE
     using device_region_type = typename region_traits_type::device_region_type;
-    using device_handle_type = typename region_traits_type::device_handle_type;
 #endif
-
-    struct block
-    {
-        using handle_type = typename ::hwmalloc::detail::segment<Context>::handle_type;
-        segment*    m_segment = nullptr;
-        void*       m_ptr = nullptr;
-        handle_type m_handle;
-#if HWMALLOC_ENABLE_DEVICE
-        using device_handle_type =
-            typename ::hwmalloc::detail::segment<Context>::device_handle_type;
-        void*              m_device_ptr = nullptr;
-        device_handle_type m_device_handle = device_handle_type();
-        int                m_device_id = 0;
-
-        bool on_device() const noexcept { return m_device_ptr; }
-#else
-        bool on_device() const noexcept { return false; }
-#endif
-
-        void release() const noexcept { m_segment->get_pool()->free(*this); }
-    };
+    using block = block_t<Context>;
 
     struct allocation_holder
     {
@@ -106,7 +84,7 @@ class segment
         char* origin = (char*)m_allocation.m.ptr;
         for (std::size_t i = m_num_blocks; i > 0; --i)
         {
-            block b{this, origin + (i - 1) * block_size,
+            block b{this, nullptr, origin + (i - 1) * block_size,
                 m_region.get_handle((i - 1) * block_size, block_size)};
             while (!free_stack.push(b)) {}
         }
@@ -131,7 +109,7 @@ class segment
         char* device_origin = (char*)m_device_allocation.m;
         for (std::size_t i = m_num_blocks; i > 0; --i)
         {
-            block b{this, origin + (i - 1) * block_size,
+            block b{this, nullptr, origin + (i - 1) * block_size,
                 m_region.get_handle((i - 1) * block_size, block_size),
                 device_origin + (i - 1) * block_size,
                 m_device_region->get_handle((i - 1) * block_size, block_size), device_id};
@@ -156,9 +134,11 @@ class segment
     template<typename Stack>
     std::size_t collect(Stack& stack)
     {
-        const auto consumed = m_freed_stack.consume_all([&stack](block const& b) {
-            while (!stack.push(b)) {}
-        });
+        const auto consumed = m_freed_stack.consume_all(
+            [&stack](block const& b)
+            {
+                while (!stack.push(b)) {}
+            });
         m_num_freed.fetch_sub(consumed);
         return consumed;
     }
@@ -169,6 +149,13 @@ class segment
         ++m_num_freed;
     }
 };
+
+
+template<typename Context>
+void block_t<Context>::release_from_segment() const noexcept
+{
+    m_segment->get_pool()->free(*this);
+}
 
 } // namespace detail
 } // namespace hwmalloc

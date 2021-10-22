@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <hwmalloc/detail/user_allocation.hpp>
 #include <hwmalloc/detail/fixed_size_heap.hpp>
 #include <hwmalloc/fancy_ptr/void_ptr.hpp>
 #include <hwmalloc/fancy_ptr/const_void_ptr.hpp>
@@ -38,6 +39,10 @@ class heap
 {
   public:
     using this_type = heap<Context>;
+    using region_type = typename detail::region_traits<Context>::region_type;
+#if HWMALLOC_ENABLE_DEVICE
+    using device_region_type = typename detail::region_traits<Context>::device_region_type;
+#endif
     using fixed_size_heap_type = detail::fixed_size_heap<Context>;
     using block_type = typename fixed_size_heap_type::block_type;
     using heap_vector = std::vector<std::unique_ptr<fixed_size_heap_type>>;
@@ -148,16 +153,16 @@ class heap
     , m_heaps(bucket_index(m_max_size) + 1)
     {
         for (std::size_t i = 0; i < m_tiny_heaps.size(); ++i)
-            m_tiny_heaps[i] = std::make_unique<fixed_size_heap_type>(
-                m_context, s_tiny_increment * (i + 1), s_tiny_segment, m_never_free);
+            m_tiny_heaps[i] = std::make_unique<fixed_size_heap_type>(m_context,
+                s_tiny_increment * (i + 1), s_tiny_segment, m_never_free);
 
         for (std::size_t i = 0; i < s_num_small_heaps; ++i)
-            m_heaps[i] = std::make_unique<fixed_size_heap_type>(
-                m_context, (s_tiny_limit << (i + 1)), s_small_segment, m_never_free);
+            m_heaps[i] = std::make_unique<fixed_size_heap_type>(m_context,
+                (s_tiny_limit << (i + 1)), s_small_segment, m_never_free);
 
         for (std::size_t i = 0; i < s_num_large_heaps; ++i)
-            m_heaps[i + s_num_small_heaps] = std::make_unique<fixed_size_heap_type>(
-                m_context, (s_small_limit << (i + 1)), s_large_segment, m_never_free);
+            m_heaps[i + s_num_small_heaps] = std::make_unique<fixed_size_heap_type>(m_context,
+                (s_small_limit << (i + 1)), s_large_segment, m_never_free);
 
         for (std::size_t i = 0; i < m_heaps.size() - (s_num_small_heaps + s_num_large_heaps); ++i)
             m_heaps[i + s_num_small_heaps + s_num_large_heaps] =
@@ -169,6 +174,21 @@ class heap
     heap(heap&&) = delete;
 
     Context& context() noexcept { return *m_context; }
+
+    // --------------------------------------------------
+    // create a singleton ptr to a heap, thread-safe
+    static std::shared_ptr<heap> get_instance(Context* context = nullptr)
+    {
+        static std::mutex            heap_init_mutex_;
+        std::lock_guard<std::mutex>  lock(heap_init_mutex_);
+        static std::shared_ptr<heap> instance(nullptr);
+        if (!instance.get())
+        {
+            assert(context != nullptr);
+            instance.reset(new heap(context));
+        }
+        return instance;
+    }
 
     pointer allocate(std::size_t size, std::size_t numa_node)
     {
@@ -189,6 +209,12 @@ class heap
             }
             return {h->allocate(numa_node)};
         }
+    }
+
+    pointer register_user_allocation(void* ptr, std::size_t size)
+    {
+        auto a = new detail::user_allocation<Context>{m_context, ptr, size};
+        return {block_type{nullptr, a, ptr, a->m_region.get_handle(0, size)}};
     }
 
 #if HWMALLOC_ENABLE_DEVICE
@@ -212,6 +238,20 @@ class heap
             return {h->allocate(numa_node, device_id)};
         }
     }
+
+    pointer register_user_allocation(void* device_ptr, int device_id, std::size_t size)
+    {
+        auto a = new detail::user_allocation<Context>{m_context, device_ptr, device_id, size};
+        return {block_type{nullptr, a, a->m_host_allocation.m_ptr, a->m_region.get_handle(0, size),
+            device_ptr, a->m_device_region->get_handle(0, size), device_id}};
+    }
+
+    pointer register_user_allocation(void* ptr, void* device_ptr, int device_id, std::size_t size)
+    {
+        auto a = new detail::user_allocation<Context>{m_context, ptr, device_ptr, device_id, size};
+        return {block_type{nullptr, a, ptr, a->m_region.get_handle(0, size), device_ptr,
+            a->m_device_region->get_handle(0, size), device_id}};
+    }
 #endif
 
     template<typename VoidPtr>
@@ -228,8 +268,8 @@ class heap
 
     // scalar version
     template<typename T, typename... Args>
-    std::enable_if_t<!std::is_array<T>::value, unique_ptr<T>> make_unique(
-        std::size_t numa_node, Args&&... args)
+    std::enable_if_t<!std::is_array<T>::value, unique_ptr<T>> make_unique(std::size_t numa_node,
+        Args&&... args)
     {
         auto ptr = allocate(sizeof(T), numa_node);
         new (ptr.get()) T(std::forward<Args>(args)...);
@@ -238,14 +278,14 @@ class heap
 
     // array version
     template<typename T>
-    std::enable_if_t<std::is_array<T>::value, unique_ptr<T>> make_unique(
-        std::size_t numa_node, std::size_t size)
+    std::enable_if_t<std::is_array<T>::value, unique_ptr<T>> make_unique(std::size_t numa_node,
+        std::size_t                                                                  size)
     {
         using U = typename std::remove_extent<T>::type;
         auto ptr = allocate(sizeof(U) * size, numa_node);
         new (ptr.get()) U[size]();
-        return unique_ptr<T>(
-            static_cast<hw_ptr<U, block_type>>(ptr), heap_delete<T, block_type>{size});
+        return unique_ptr<T>(static_cast<hw_ptr<U, block_type>>(ptr),
+            heap_delete<T, block_type>{size});
     }
 };
 
