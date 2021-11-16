@@ -8,6 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <hwmalloc/device.hpp>
+#include <hwmalloc/log.hpp>
+#include <cstdint>
 #include <hip/hip_runtime.h>
 #include <stdexcept>
 #include <string>
@@ -46,12 +48,15 @@ device_malloc(std::size_t size)
 {
     void* ptr;
     HWMALLOC_CHECK_HIP_RESULT(hipMalloc(&ptr, size));
+    HWMALLOC_LOG("allocating", size, "bytes using hipMalloc on device", get_device_id(), ":",
+        (std::uintptr_t)a.ptr);
     return ptr;
 }
 
 void
 device_free(void* ptr) noexcept
 {
+    HWMALLOC_LOG("freeing    using hipFree on device", get_device_id(), ":", (std::uintptr_t)ptr);
     hipFree(ptr);
 }
 

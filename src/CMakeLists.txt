@@ -1,5 +1,9 @@
 target_sources(hwmalloc PRIVATE numa.cpp)
 
+if (HWMALLOC_ENABLE_LOGGING)
+    target_sources(hwmalloc PRIVATE log.cpp)
+endif()
+
 if (HWMALLOC_ENABLE_DEVICE)
     set(HWMALLOC_DEVICE_RUNTIME "cuda" CACHE STRING "Choose the type of the gpu runtime.")
     set_property(CACHE HWMALLOC_DEVICE_RUNTIME PROPERTY STRINGS "cuda" "hip" "emulate")

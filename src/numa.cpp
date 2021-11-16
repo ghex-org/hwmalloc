@@ -8,11 +8,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <hwmalloc/numa.hpp>
+#include <hwmalloc/log.hpp>
 #include <numaif.h>
 #include <numa.h>
 #include <unistd.h>
 #include <algorithm>
 #include <cstdlib>
+#include <cstdint>
 
 #ifdef HWMALLOC_NUMA_THROWS
 #include <stdexcept>
@@ -120,6 +122,8 @@ numa_tools::allocate(size_type num_pages, index_type node) const noexcept
     auto ptr = numa_alloc_onnode(num_pages * page_size_, node);
     // fall back to malloc
     if (!ptr) return allocate_malloc(num_pages);
+    HWMALLOC_LOG("allocating", num_pages * page_size_,
+        "bytes using numa_alloc:", (std::uintptr_t)ptr);
     return {ptr, num_pages * page_size_, node};
 }
 
@@ -128,6 +132,8 @@ numa_tools::allocate_malloc(size_type num_pages) const noexcept
 {
     void* ptr = std::malloc(num_pages * page_size_);
     if (!ptr) return {};
+    HWMALLOC_LOG("allocating", num_pages * page_size_,
+        "bytes using std::malloc:", (std::uintptr_t)ptr);
     return {ptr, num_pages * page_size_, get_node(ptr), false};
 }
 
@@ -150,9 +156,16 @@ numa_tools::free(numa_tools::allocation const& a) const noexcept
 {
     if (a)
     {
-        if (a.use_numa_free) numa_free(a.ptr, a.size);
+        if (a.use_numa_free)
+        {
+            HWMALLOC_LOG("freeing   ", a.size, "bytes using numa_free:", (std::uintptr_t)a.ptr);
+            numa_free(a.ptr, a.size);
+        }
         else
+        {
+            HWMALLOC_LOG("freeing   ", a.size, "bytes using std::free:", (std::uintptr_t)a.ptr);
             std::free(a.ptr);
+        }
     }
 }
 

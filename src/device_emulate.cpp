@@ -8,6 +8,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <hwmalloc/device.hpp>
+#include <hwmalloc/log.hpp>
 #include <cstdlib>
 #include <cstring>
 
@@ -33,12 +34,15 @@ set_device_id(int /*id*/)
 void*
 device_malloc(std::size_t size)
 {
-    return std::memset(std::malloc(size), 0, size);
+    auto ptr = std::memset(std::malloc(size), 0, size);
+    HWMALLOC_LOG("allocating", size, "bytes using emulate (std::malloc):", (std::uintptr_t)ptr);
+    return ptr;
 }
 
 void
 device_free(void* ptr) noexcept
 {
+    HWMALLOC_LOG("freeing    using emulate (std::free):", (std::uintptr_t)ptr);
     std::free(ptr);
 }
 
