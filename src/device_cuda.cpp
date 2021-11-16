@@ -8,6 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 #include <hwmalloc/device.hpp>
+#include <hwmalloc/log.hpp>
+#include <cstdint>
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
@@ -46,12 +48,15 @@ device_malloc(std::size_t size)
 {
     void* ptr;
     HWMALLOC_CHECK_CUDA_RESULT(cudaMalloc(&ptr, size));
+    HWMALLOC_LOG("allocating", size, "bytes using cudaMalloc on device", get_device_id(), ":",
+        (std::uintptr_t)a.ptr);
     return ptr;
 }
 
 void
 device_free(void* ptr) noexcept
 {
+    HWMALLOC_LOG("freeing    using cudaFree on device", get_device_id(), ":", (std::uintptr_t)ptr);
     cudaFree(ptr);
 }
 

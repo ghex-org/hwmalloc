@@ -46,6 +46,11 @@ target_link_libraries(hwmalloc PRIVATE Boost::boost)
 set(HWMALLOC_ENABLE_DEVICE OFF CACHE BOOL "True if GPU support shall be enabled")
 
 # ---------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------
+set(HWMALLOC_ENABLE_LOGGING OFF CACHE BOOL "print logging info to cerr")
+
+# ---------------------------------------------------------------------
 # include paths
 # ---------------------------------------------------------------------
 target_include_directories(hwmalloc PUBLIC
