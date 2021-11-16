@@ -14,7 +14,7 @@
 // use the variadic macro HWMALLOC_LOG to log messages
 // the arguments will be divided by a whitespace
 #ifdef HWMALLOC_ENABLE_LOGGING
-#define HWMALLOC_LOG(...) ::hwmalloc::log_message(__VA_ARGS__);
+#define HWMALLOC_LOG(...) ::hwmalloc::log_message(__VA_ARGS__, "(", __FILE__, ":", __LINE__, ")");
 #else
 #define HWMALLOC_LOG(...)
 #endif
