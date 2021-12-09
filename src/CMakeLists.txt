@@ -18,6 +18,8 @@ if (HWMALLOC_ENABLE_DEVICE)
     elseif (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "hip")
         find_package(hip REQUIRED)
         target_link_libraries(hwmalloc PRIVATE hip::device)
+        # workaround for clang-hip
+        target_compile_options(hwmalloc PRIVATE $<BUILD_INTERFACE:-std=c++14>)
     endif()
 
     target_sources(hwmalloc PRIVATE device_${HWMALLOC_DEVICE_RUNTIME}.cpp)
