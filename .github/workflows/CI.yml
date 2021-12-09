@@ -81,4 +81,4 @@ jobs:
             -DHWMALLOC_DISABLE_NUMA_TEST=ON \
             ..
       - name: Build
-        run: cmake --build build VERBOSE=1
+        run: cmake --build build --verbose
