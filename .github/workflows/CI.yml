@@ -73,7 +73,7 @@ jobs:
           df
           cat /proc/cpuinfo
           mkdir -p build && cd build
-          CXX=/opt/rocm/llvm/bin/clang++ cmake .. VERBOSE=1 \
+          CXX=/opt/rocm/llvm/bin/clang++ cmake .. \
             -DCMAKE_BUILD_TYPE=Debug \
             -DHWMALLOC_ENABLE_DEVICE=ON \
             -DHWMALLOC_DEVICE_RUNTIME=hip \
@@ -81,4 +81,4 @@ jobs:
             -DHWMALLOC_DISABLE_NUMA_TEST=ON \
             ..
       - name: Build
-        run: cmake --build build
+        run: cmake --build build VERBOSE=1
