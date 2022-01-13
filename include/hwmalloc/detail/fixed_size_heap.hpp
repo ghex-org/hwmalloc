@@ -22,6 +22,7 @@ class fixed_size_heap
   public:
     using pool_type = pool<Context>;
     using block_type = typename pool_type::block_type;
+    using handle_type = typename pool_type::handle_type;
 
   private:
     Context*                                m_context;

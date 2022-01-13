@@ -40,6 +40,7 @@ class heap
     using this_type = heap<Context>;
     using fixed_size_heap_type = detail::fixed_size_heap<Context>;
     using block_type = typename fixed_size_heap_type::block_type;
+    using handle_type = typename fixed_size_heap_type::handle_type;
     using heap_vector = std::vector<std::unique_ptr<fixed_size_heap_type>>;
     using heap_map = std::unordered_map<std::size_t, std::unique_ptr<fixed_size_heap_type>>;
     using pointer = hw_void_ptr<block_type>;

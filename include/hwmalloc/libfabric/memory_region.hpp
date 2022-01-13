@@ -42,9 +42,12 @@ struct region_provider
     typedef struct fid_mr     provider_region;
     typedef struct fid_domain provider_domain;
 
-//    fi_mr_reg(struct fid_domain *domain, const void *buf, size_t len,
-//          uint64_t acs, uint64_t offset, uint64_t requested_key,
-//          uint64_t flags, struct fid_mr **mr, void *context)
+    /*
+     * Correct
+     * fi_mr_reg(struct fid_domain *domain, const void *buf, size_t len,
+     *      uint64_t acs, uint64_t offset, uint64_t requested_key,
+     *      uint64_t flags, struct fid_mr **mr, void *context)
+    */
 
     // register region
     template<typename... Args>
@@ -63,16 +66,16 @@ struct region_provider
     }
 
     // Get the local descriptor of the memory region.
-    static void* get_local_key(provider_region* region) { return fi_mr_desc(region); }
+    static void* get_local_key(provider_region * const region) { return fi_mr_desc(region); }
 
     // Get the remote key of the memory region.
-    static uint64_t get_remote_key(provider_region* region) { return fi_mr_key(region); }
+    static uint64_t get_remote_key(provider_region * const region) { return fi_mr_key(region); }
 };
 
 // --------------------------------------------------------------------
 // This is a handle to a small chunk of memory that has been registered
 // as part of a much larger allocation (a memory_segment)
-struct memory_handle
+struct memory_handle : hwmalloc::handle_base
 {
     // --------------------------------------------------------------------
     using provider_region = region_provider::provider_region;
@@ -86,9 +89,7 @@ struct memory_handle
     memory_handle(provider_region* region, unsigned char* addr, std::size_t size, uint32_t flags) noexcept
         : address_{addr}
         , region_{region}
-        , local_key_{region_provider::get_local_key(region)}
-        , remote_key_{region_provider::get_remote_key(region)}
-        , size_{size}
+        , size_{uint32_t(size)}
         , used_space_{0}
         , flags_{flags}
     {
@@ -99,8 +100,6 @@ struct memory_handle
     memory_handle(memory_handle&& other) noexcept
         : address_{other.address_}
         , region_{std::exchange(other.region_, nullptr)}
-        , local_key_{other.local_key_}
-        , remote_key_{other.remote_key_}
         , size_{other.size_}
         , used_space_{other.used_space_}
         , flags_{other.flags_}
@@ -113,8 +112,6 @@ struct memory_handle
     {
         address_ = other.address_;
         region_ = std::exchange(other.region_, nullptr);
-        local_key_ = other.local_key_;
-        remote_key_ = other.remote_key_;
         size_ = other.size_;
         used_space_ = other.used_space_;
         flags_ = other.flags_;
@@ -127,11 +124,11 @@ struct memory_handle
 
     // --------------------------------------------------------------------
     // Get the local descriptor of the memory region.
-    inline void* get_local_key(void) const { return local_key_; }
+    inline void* get_local_key(void) const { return region_provider::get_local_key(region_); }
 
     // --------------------------------------------------------------------
     // Get the remote key of the memory region.
-    inline uint64_t get_remote_key(void) const { return remote_key_; }
+    inline uint64_t get_remote_key(void) const { return region_provider::get_remote_key(region_); }
 
     // --------------------------------------------------------------------
     // Get the size of the memory chunk usable by this memory region,
@@ -190,8 +187,8 @@ struct memory_handle
            << " address "    << hpx::debug::ptr(region.address_)
            << " size "       << hpx::debug::hex<6>(region.size_)
            << " used_space " << hpx::debug::hex<6>(region.used_space_)
-           << " local key "  << hpx::debug::ptr(region.local_key_)
-           << " remote key " << hpx::debug::ptr(region.remote_key_)
+           << " local key "  << hpx::debug::ptr(region_provider::get_local_key(region.region_))
+           << " remote key " << hpx::debug::ptr(region_provider::get_remote_key(region.region_))
            << " flags "      << hpx::debug::bin<8>(region.flags_);
         // clang-format on
 #endif
@@ -206,17 +203,13 @@ struct memory_handle
     // The hardware level handle to the region (as returned from libfabric fi_mr_reg)
     provider_region* region_;
 
-    // local/remote keys cached from region (fi_mr_desc)
-    void*    local_key_;
-    uint64_t remote_key_;
-
     // The (maximum available) size of the memory buffer
-    uint64_t size_;
+    uint32_t size_;
 
     // Space used by a message in the memory region.
     // This may be smaller/less than the size available if more space
     // was allocated than it turns out was needed
-    mutable uint64_t used_space_;
+    mutable uint32_t used_space_;
 
     // flags to control lifetime of blocks
     uint32_t flags_;
@@ -318,7 +311,7 @@ struct memory_segment : public memory_handle
             auto length = mrn_deb.declare_variable<uint64_t>(get_size());
             (void) length;
 #endif
-            const void* buffer = get_base_address();
+//            const void* buffer = get_base_address();
             //
             if (region_provider::unregister_memory(region_))
             {
