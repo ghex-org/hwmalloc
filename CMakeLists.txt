@@ -15,7 +15,7 @@ if(NOT CMAKE_BUILD_TYPE) # AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 set(HWMALLOC_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-list(APPEND CMAKE_MODULE_PATH "${HWMALLOC_MODULE_PATH}")
+list(PREPEND CMAKE_MODULE_PATH "${HWMALLOC_MODULE_PATH}")
 
 # ---------------------------------------------------------------------
 # Define main hwmalloc library

@@ -8,7 +8,7 @@ hwmalloc_option(HWMALLOC_WITH_LIBFABRIC BOOL
   OFF CATEGORY "hwmalloc")
 
 if (HWMALLOC_WITH_LIBFABRIC)
-  find_package(Libfabric REQUIRED)
+    find_package(Libfabric REQUIRED)
   hwmalloc_add_config_define_namespace(
       DEFINE    HWMALLOC_HAVE_LIBFABRIC
       NAMESPACE libfabric)
@@ -53,7 +53,7 @@ endif()
 #------------------------------------------------------------------------------
 # Write options to file in build dir
 #------------------------------------------------------------------------------
-write_config_defines_file(
+hwmalloc_write_config_defines_file(
     NAMESPACE libfabric
     FILENAME  "${PROJECT_BINARY_DIR}/include/hwmalloc/libfabric/config.hpp"
 )

@@ -43,7 +43,7 @@ endfunction()
 # Function to write out all the config defines for a given namespace
 # into a config file
 # ---------------------------------------------------------------------
-function(write_config_defines_file)
+function(hwmalloc_write_config_defines_file)
   set(options)
   set(one_value_args TEMPLATE NAMESPACE FILENAME)
   set(multi_value_args)
@@ -63,21 +63,21 @@ function(write_config_defines_file)
     list(REMOVE_DUPLICATES DEFINITIONS_VAR)
   endif()
 
-  set(hpx_config_defines "\n")
+  set(hwmalloc_config_defines "\n")
   foreach(def ${DEFINITIONS_VAR})
     # C++17 specific variable
     string(FIND ${def} "HAVE_CXX17" _pos)
     if(NOT ${_pos} EQUAL -1)
-      set(hpx_config_defines
-         "${hpx_config_defines}#if __cplusplus >= 201500\n#define ${def}\n#endif\n")
+      set(hwmalloc_config_defines
+         "${hwmalloc_config_defines}#if __cplusplus >= 201500\n#define ${def}\n#endif\n")
     else()
       # C++14 specific variable
       string(FIND ${def} "HAVE_CXX14" _pos)
       if(NOT ${_pos} EQUAL -1)
-        set(hpx_config_defines
-           "${hpx_config_defines}#if __cplusplus >= 201402\n#define ${def}\n#endif\n")
+        set(hwmalloc_config_defines
+           "${hwmalloc_config_defines}#if __cplusplus >= 201402\n#define ${def}\n#endif\n")
       else()
-        set(hpx_config_defines "${hpx_config_defines}#define ${def}\n")
+        set(hwmalloc_config_defines "${hwmalloc_config_defines}#define ${def}\n")
       endif()
     endif()
   endforeach()
@@ -85,7 +85,7 @@ function(write_config_defines_file)
   if(DEFINED COND_DEFINITIONS_VAR)
     list(SORT COND_DEFINITIONS_VAR)
     list(REMOVE_DUPLICATES COND_DEFINITIONS_VAR)
-    set(hpx_config_defines "${hpx_config_defines}\n")
+    set(hwmalloc_config_defines "${hwmalloc_config_defines}\n")
   endif()
   foreach(def ${COND_DEFINITIONS_VAR})
     string(FIND ${def} " " _pos)
@@ -97,17 +97,17 @@ function(write_config_defines_file)
     endif()
     string(FIND ${def} "HAVE_CXX17" _pos)
     if(NOT ${_pos} EQUAL -1)
-      set(hpx_config_defines
-         "${hpx_config_defines}#if __cplusplus >= 201500 && !defined(${defname})\n#define ${def}\n#endif\n")
+      set(hwmalloc_config_defines
+         "${hwmalloc_config_defines}#if __cplusplus >= 201500 && !defined(${defname})\n#define ${def}\n#endif\n")
     else()
       # C++14 specific variable
       string(FIND ${def} "HAVE_CXX14" _pos)
       if(NOT ${_pos} EQUAL -1)
-        set(hpx_config_defines
-           "${hpx_config_defines}#if __cplusplus >= 201402 && !defined(${defname})\n#define ${def}\n#endif\n")
+        set(hwmalloc_config_defines
+           "${hwmalloc_config_defines}#if __cplusplus >= 201402 && !defined(${defname})\n#define ${def}\n#endif\n")
       else()
-        set(hpx_config_defines
-          "${hpx_config_defines}#if !defined(${defname})\n#define ${def}\n#endif\n")
+        set(hwmalloc_config_defines
+          "${hwmalloc_config_defines}#if !defined(${defname})\n#define ${def}\n#endif\n")
       endif()
     endif()
   endforeach()
@@ -125,7 +125,7 @@ function(write_config_defines_file)
     set(TEMP_FILENAME "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${NAMESPACE_UPPER}")
     file(WRITE ${TEMP_FILENAME}
         ${PREAMBLE}
-        ${hpx_config_defines}
+        ${hwmalloc_config_defines}
         "\n#endif\n"
     )
     configure_file("${TEMP_FILENAME}" "${OPTION_FILENAME}" COPYONLY)

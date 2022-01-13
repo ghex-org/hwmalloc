@@ -19,7 +19,7 @@ endif()
 #------------------------------------------------------------------------------
 # Write options to file in build dir
 #------------------------------------------------------------------------------
-write_config_defines_file(
+hwmalloc_write_config_defines_file(
     NAMESPACE mpi
     FILENAME  "${PROJECT_BINARY_DIR}/include/hwmalloc/mpi/config.hpp"
 )
