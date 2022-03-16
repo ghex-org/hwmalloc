@@ -103,29 +103,29 @@ class heap
         return ((n < 2) ? 1 : 1 + log2_c(n >> 1));
     }
 
-    static constexpr std::size_t s_tiny_limit = (1u << 7);   //   128
-    static constexpr std::size_t s_small_limit = (1u << 10); //  1024
-    static constexpr std::size_t s_large_limit = (1u << 16); // 65536
+    static const std::size_t s_tiny_limit = (1u << 7);   //   128
+    static const std::size_t s_small_limit = (1u << 10); //  1024
+    static const std::size_t s_large_limit = (1u << 16); // 65536
 
-    static constexpr std::size_t s_bucket_shift = log2_c(s_tiny_limit) - 1;
+    static const std::size_t s_bucket_shift = log2_c(s_tiny_limit) - 1;
 
-    static constexpr std::size_t s_tiny_segment = 0x04000;  // 16KiB
-    static constexpr std::size_t s_small_segment = 0x08000; // 32KiB
-    static constexpr std::size_t s_large_segment = 0x10000; // 64KiB
+    static const std::size_t s_tiny_segment = 0x04000;  // 16KiB
+    static const std::size_t s_small_segment = 0x08000; // 32KiB
+    static const std::size_t s_large_segment = 0x10000; // 64KiB
 
-    static constexpr std::size_t s_tiny_increment_shift = 3;
-    static constexpr std::size_t s_tiny_increment = (1u << s_tiny_increment_shift); // = 8
+    static const std::size_t s_tiny_increment_shift = 3;
+    static const std::size_t s_tiny_increment = (1u << s_tiny_increment_shift); // = 8
 
-    static constexpr std::size_t s_num_tiny_heaps = s_tiny_limit / s_tiny_increment;
-    static constexpr std::size_t s_num_small_heaps = log2_c(s_small_limit) - log2_c(s_tiny_limit);
-    static constexpr std::size_t s_num_large_heaps = log2_c(s_large_limit) - log2_c(s_small_limit);
+    static const std::size_t s_num_tiny_heaps = s_tiny_limit / s_tiny_increment;
+    static const std::size_t s_num_small_heaps = log2_c(s_small_limit) - log2_c(s_tiny_limit);
+    static const std::size_t s_num_large_heaps = log2_c(s_large_limit) - log2_c(s_small_limit);
 
-    static constexpr std::size_t tiny_bucket_index(std::size_t n) noexcept
+    static std::size_t tiny_bucket_index(std::size_t n) noexcept
     {
         return ((n + s_tiny_increment - 1) >> s_tiny_increment_shift) - 1;
     }
 
-    static constexpr std::size_t bucket_index(std::size_t n) noexcept
+    static std::size_t bucket_index(std::size_t n) noexcept
     {
         return log2_c((n - 1) >> s_bucket_shift) - 1;
     }
@@ -290,28 +290,28 @@ class heap
 };
 
 template<typename Context>
-constexpr std::size_t heap<Context>::s_tiny_limit;
+const std::size_t heap<Context>::s_tiny_limit;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_small_limit;
+const std::size_t heap<Context>::s_small_limit;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_large_limit;
+const std::size_t heap<Context>::s_large_limit;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_bucket_shift;
+const std::size_t heap<Context>::s_bucket_shift;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_tiny_segment;
+const std::size_t heap<Context>::s_tiny_segment;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_small_segment;
+const std::size_t heap<Context>::s_small_segment;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_large_segment;
+const std::size_t heap<Context>::s_large_segment;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_tiny_increment_shift;
+const std::size_t heap<Context>::s_tiny_increment_shift;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_tiny_increment;
+const std::size_t heap<Context>::s_tiny_increment;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_num_tiny_heaps;
+const std::size_t heap<Context>::s_num_tiny_heaps;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_num_small_heaps;
+const std::size_t heap<Context>::s_num_small_heaps;
 template<typename Context>
-constexpr std::size_t heap<Context>::s_num_large_heaps;
+const std::size_t heap<Context>::s_num_large_heaps;
 
 } // namespace hwmalloc
