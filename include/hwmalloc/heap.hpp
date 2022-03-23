@@ -213,8 +213,8 @@ class heap
 
     pointer register_user_allocation(void* ptr, std::size_t size)
     {
-        auto a = new detail::user_allocation<Context>{m_context, ptr, size};
-        return {block_type{nullptr, a, ptr, a->m_region.get_handle(0, size)}};
+        detail::user_allocation<Context> ua{m_context, ptr, size};
+        return {block_type{nullptr, ptr, ptr, false, std::move(ua.m_region)}};
     }
 
 #if HWMALLOC_ENABLE_DEVICE
@@ -241,16 +241,16 @@ class heap
 
     pointer register_user_allocation(void* device_ptr, int device_id, std::size_t size)
     {
-        auto a = new detail::user_allocation<Context>{m_context, device_ptr, device_id, size};
-        return {block_type{nullptr, a, a->m_host_allocation.m_ptr, a->m_region.get_handle(0, size),
-            device_ptr, a->m_device_region->get_handle(0, size), device_id}};
+        detail::user_allocation<Context> ua{m_context, device_ptr, device_id, size};
+        return {block_type{nullptr, device_ptr, ua.m_host_ptr, ua.m_host_delete, std::move(ua.m_region.get_handle(0, size)),
+            device_ptr, std::move(ua->m_device_region->get_handle(0, size)), device_id}};
     }
 
     pointer register_user_allocation(void* ptr, void* device_ptr, int device_id, std::size_t size)
     {
-        auto a = new detail::user_allocation<Context>{m_context, ptr, device_ptr, device_id, size};
-        return {block_type{nullptr, a, ptr, a->m_region.get_handle(0, size), device_ptr,
-            a->m_device_region->get_handle(0, size), device_id}};
+        detail::user_allocation<Context> ua{m_context, ptr, device_ptr, device_id, size};
+        return {block_type{nullptr, device_ptr, ua.m_host_ptr, ua.m_host_delete, std::move(ua->m_region.get_handle(0, size)),
+            device_ptr, std::move(ua->m_device_region->get_handle(0, size)), device_id}};
     }
 #endif
 
