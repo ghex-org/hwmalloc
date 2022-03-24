@@ -40,12 +40,6 @@ class allocator
     std::size_t m_numa_node;
 
   public:
-    allocator()
-    {
-        m_heap = Heap::get_instance().get();
-        m_numa_node = 0;
-    }
-
     allocator(Heap* heap, std::size_t numa_node)
     : m_heap{heap}
     , m_numa_node{numa_node}
