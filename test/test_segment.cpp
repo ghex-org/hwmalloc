@@ -98,7 +98,7 @@ TEST(pool, construction)
 
     context c;
 
-    pool_t p(&c, 8, hwmalloc::numa().page_size(), 0, false);
+    pool_t p(&c, 8, hwmalloc::numa().page_size(), 0, false, 1);
 
     for (unsigned int i = 0; i < 512; ++i)
     {
@@ -120,7 +120,7 @@ TEST(fixed_size_heap, construction)
 
     context c;
 
-    heap_t h(&c, 8, hwmalloc::numa().page_size(), false);
+    heap_t h(&c, 8, hwmalloc::numa().page_size(), false, 1);
 
     for (unsigned int i = 0; i < 512; ++i)
     {
