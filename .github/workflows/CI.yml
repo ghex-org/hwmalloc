@@ -8,7 +8,7 @@ on:
 jobs:
   build-cpu:
     runs-on: ubuntu-latest
-    container: ghcr.io/gridtools/gridtools-base:gcc-11
+    container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi
     steps:
       - uses: actions/checkout@v1
       - name: Configure
@@ -35,7 +35,7 @@ jobs:
 
   build-cuda:
     runs-on: ubuntu-latest
-    container: ghcr.io/gridtools/gridtools-base:gcc-10-cuda-11
+    container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi-atlas-parmetis-cuda-11
     steps:
       - uses: actions/checkout@v1
       - name: Configure
@@ -60,7 +60,7 @@ jobs:
 
   build-hip:
     runs-on: ubuntu-latest
-    container: ghcr.io/gridtools/gridtools-base:base-hip
+    container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi-atlas-parmetis-cuda-hip
     steps:
       - uses: actions/checkout@v1
       - name: Configure
