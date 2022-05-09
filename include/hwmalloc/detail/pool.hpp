@@ -102,7 +102,7 @@ class pool
 
 #if HWMALLOC_ENABLE_DEVICE
     pool(Context* context, std::size_t block_size, std::size_t segment_size, std::size_t numa_node,
-        int device_id, bool never_free, num_reserve_segments)
+        int device_id, bool never_free, std::size_t num_reserve_segments)
     : pool(context, block_size, segment_size, numa_node, never_free, num_reserve_segments)
     {
         m_device_id = device_id;
