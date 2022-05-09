@@ -139,35 +139,37 @@ class heap
     Context*    m_context;
     std::size_t m_max_size;
     bool        m_never_free;
+    std::size_t m_num_reserve_segments;
     heap_vector m_tiny_heaps;
     heap_vector m_heaps;
     heap_map    m_huge_heaps;
     std::mutex  m_mutex;
 
   public:
-    heap(Context* context, std::size_t max_size = s_large_limit * 2, bool never_free = false)
+    heap(Context* context, bool never_free = false, std::size_t num_reserve_segments = 1)
     : m_context{context}
-    , m_max_size(std::max(round_to_pow_of_2(max_size), s_large_limit))
+    , m_max_size(std::max(round_to_pow_of_2(s_large_limit * 2), s_large_limit))
     , m_never_free{never_free}
+    , m_num_reserve_segments{num_reserve_segments}
     , m_tiny_heaps(s_tiny_limit / s_tiny_increment)
     , m_heaps(bucket_index(m_max_size) + 1)
     {
         for (std::size_t i = 0; i < m_tiny_heaps.size(); ++i)
             m_tiny_heaps[i] = std::make_unique<fixed_size_heap_type>(m_context,
-                s_tiny_increment * (i + 1), s_tiny_segment, m_never_free);
+                s_tiny_increment * (i + 1), s_tiny_segment, m_never_free, m_num_reserve_segments);
 
         for (std::size_t i = 0; i < s_num_small_heaps; ++i)
             m_heaps[i] = std::make_unique<fixed_size_heap_type>(m_context,
-                (s_tiny_limit << (i + 1)), s_small_segment, m_never_free);
+                (s_tiny_limit << (i + 1)), s_small_segment, m_never_free, m_num_reserve_segments);
 
         for (std::size_t i = 0; i < s_num_large_heaps; ++i)
             m_heaps[i + s_num_small_heaps] = std::make_unique<fixed_size_heap_type>(m_context,
-                (s_small_limit << (i + 1)), s_large_segment, m_never_free);
+                (s_small_limit << (i + 1)), s_large_segment, m_never_free, m_num_reserve_segments);
 
         for (std::size_t i = 0; i < m_heaps.size() - (s_num_small_heaps + s_num_large_heaps); ++i)
             m_heaps[i + s_num_small_heaps + s_num_large_heaps] =
                 std::make_unique<fixed_size_heap_type>(m_context, (s_large_limit << (i + 1)),
-                    (s_large_limit << (i + 1)), m_never_free);
+                    (s_large_limit << (i + 1)), m_never_free, m_num_reserve_segments);
     }
 
     heap(heap const&) = delete;
@@ -204,7 +206,8 @@ class heap
                 const auto                  s = round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
                 if (!u_ptr)
-                    u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free);
+                    u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free,
+                        m_num_reserve_segments);
                 h = u_ptr.get();
             }
             return {h->allocate(numa_node)};
@@ -232,7 +235,8 @@ class heap
                 const auto                  s = round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
                 if (!u_ptr)
-                    u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free);
+                    u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free,
+                        m_num_reserve_segments);
                 h = u_ptr.get();
             }
             return {h->allocate(numa_node, device_id)};

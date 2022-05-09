@@ -91,7 +91,15 @@ numa_tools::preferred_node() const noexcept
 numa_tools::index_type
 numa_tools::local_node() const noexcept
 {
-    return numa_node_of_cpu(sched_getcpu());
+    auto const cpu = sched_getcpu();
+    auto       it = m_numa_map.find(cpu);
+    if (it != m_numa_map.end()) { return it->second; }
+    else
+    {
+        auto const node = numa_node_of_cpu(cpu);
+        m_numa_map[cpu] = node;
+        return node;
+    }
 }
 
 bool
@@ -112,13 +120,10 @@ numa_tools::allocation
 numa_tools::allocate(size_type num_pages, index_type node) const noexcept
 {
     if (num_pages == 0u) return {};
-    if (!can_allocate_on(node))
-    {
-        // try preferred node
-        node = preferred_node();
-        // fall back to malloc
-        if (!can_allocate_on(node)) return allocate_malloc(num_pages);
-    }
+    // bypass numa allocation if on local node
+    if (node == local_node()) return allocate_malloc(num_pages);
+    // bypass numa allocation if node is not available
+    if (!can_allocate_on(node)) return allocate_malloc(num_pages);
     auto ptr = numa_alloc_onnode(num_pages * page_size_, node);
     // fall back to malloc
     if (!ptr) return allocate_malloc(num_pages);
@@ -130,7 +135,8 @@ numa_tools::allocate(size_type num_pages, index_type node) const noexcept
 numa_tools::allocation
 numa_tools::allocate_malloc(size_type num_pages) const noexcept
 {
-    void* ptr = std::malloc(num_pages * page_size_);
+    void* ptr = std::calloc(num_pages, page_size_);
+    //void* ptr = std::malloc(num_pages * page_size_);
     if (!ptr) return {};
     HWMALLOC_LOG("allocating", num_pages * page_size_,
         "bytes using std::malloc:", (std::uintptr_t)ptr);

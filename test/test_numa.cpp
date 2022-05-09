@@ -32,7 +32,9 @@ TEST(numa, allocate)
     EXPECT_TRUE(a);                             // a should be a valid allocation
     EXPECT_EQ(a.node, 0);                       // a should be on node 0
     EXPECT_EQ(a.size, 16 * numa().page_size()); // a should be 16 pages
-    EXPECT_TRUE(a.use_numa_free);               // libnuma allocation should have succeeded
+    // libnuma allocation should have succeeded
+    EXPECT_EQ(a.use_numa_free, 0 != numa().local_node());
+    EXPECT_EQ(!a.use_numa_free, 0 == numa().local_node());
 
     // use a's allocation
     new (a.ptr) int(42);
@@ -45,7 +47,9 @@ TEST(numa, allocate)
     EXPECT_TRUE(b);                             // b should be a valid allocation
     EXPECT_EQ(b.node, numa().preferred_node()); // b should be on preferred node
     EXPECT_EQ(b.size, 1 * numa().page_size());  // b should be 1 page
-    EXPECT_TRUE(b.use_numa_free);               // libnuma allocation should have succeeded
+    // libnuma allocation should have succeeded
+    EXPECT_EQ(b.use_numa_free, numa().preferred_node() != numa().local_node());
+    EXPECT_EQ(!a.use_numa_free, numa().preferred_node() == numa().local_node());
     numa().free(b);
 
     auto c = numa().allocate_malloc(1);          // use normal malloc and lookup numa node

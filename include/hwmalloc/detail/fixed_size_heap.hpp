@@ -28,6 +28,7 @@ class fixed_size_heap
     std::size_t                             m_block_size;
     std::size_t                             m_segment_size;
     bool                                    m_never_free;
+    std::size_t                             m_num_reserve_segments;
     std::vector<std::unique_ptr<pool_type>> m_pools;
 #if HWMALLOC_ENABLE_DEVICE
     std::size_t                             m_num_devices;
@@ -35,12 +36,13 @@ class fixed_size_heap
 #endif
 
   public:
-    fixed_size_heap(
-        Context* context, std::size_t block_size, std::size_t segment_size, bool never_free)
+    fixed_size_heap(Context* context, std::size_t block_size, std::size_t segment_size,
+        bool never_free, std::size_t num_reserve_segments)
     : m_context(context)
     , m_block_size(block_size)
     , m_segment_size(segment_size)
     , m_never_free(never_free)
+    , m_num_reserve_segments{num_reserve_segments}
     , m_pools(numa().num_host_nodes())
 #if HWMALLOC_ENABLE_DEVICE
     , m_num_devices{(std::size_t)get_num_devices()}
@@ -49,13 +51,13 @@ class fixed_size_heap
     {
         for (unsigned int i = 0; i < numa().num_host_nodes(); ++i)
         {
-            m_pools[i] = std::make_unique<pool_type>(
-                m_context, m_block_size, m_segment_size, i, m_never_free);
+            m_pools[i] = std::make_unique<pool_type>(m_context, m_block_size, m_segment_size, i,
+                m_never_free, m_num_reserve_segments);
 #if HWMALLOC_ENABLE_DEVICE
             for (unsigned int j = 0; j < m_num_devices; ++j)
             {
-                m_device_pools[i * m_num_devices + j] = std::make_unique<pool_type>(
-                    m_context, m_block_size, m_segment_size, i, (int)j, m_never_free);
+                m_device_pools[i * m_num_devices + j] = std::make_unique<pool_type>(m_context,
+                    m_block_size, m_segment_size, i, (int)j, m_never_free, m_num_reserve_segments);
             }
 #endif
         }
