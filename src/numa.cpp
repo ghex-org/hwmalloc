@@ -43,6 +43,7 @@ numa_tools::numa_tools() HWMALLOC_NUMA_CONDITIONAL_NOEXCEPT
     if (numa_available() < 0) HWMALLOC_NUMA_ERROR("could not initialize libnuma");
     else
     {
+        //numa_set_preferred(-1);
         task_cpu_mask_ptr = numa_allocate_cpumask();
         numa_sched_getaffinity(0, task_cpu_mask_ptr);
         discover_nodes();
@@ -91,7 +92,18 @@ numa_tools::preferred_node() const noexcept
 numa_tools::index_type
 numa_tools::local_node() const noexcept
 {
-    return numa_node_of_cpu(sched_getcpu());
+    auto const cpu = sched_getcpu();
+    auto it = m_numa_map.find(cpu);
+    if (it != m_numa_map.end())
+    {
+        return it->second;
+    }
+    else
+    {
+        auto const node = numa_node_of_cpu(cpu);
+        m_numa_map[cpu] = node;
+        return node;
+    }
 }
 
 bool
