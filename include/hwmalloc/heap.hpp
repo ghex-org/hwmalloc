@@ -146,10 +146,9 @@ class heap
     std::mutex  m_mutex;
 
   public:
-    heap(Context* context, std::size_t max_size = s_large_limit * 2, bool never_free = false,
-        std::size_t num_reserve_segments = 1)
+    heap(Context* context, bool never_free = false, std::size_t num_reserve_segments = 1)
     : m_context{context}
-    , m_max_size(std::max(round_to_pow_of_2(max_size), s_large_limit))
+    , m_max_size(std::max(round_to_pow_of_2(s_large_limit * 2), s_large_limit))
     , m_never_free{never_free}
     , m_num_reserve_segments{num_reserve_segments}
     , m_tiny_heaps(s_tiny_limit / s_tiny_increment)
