@@ -47,10 +47,10 @@ class numa_tools
     static size_type page_size() noexcept { return numa_tools::page_size_; }
 
   private:
-    std::vector<index_type>                            m_host_nodes;
-    std::vector<index_type>                            m_device_nodes;
-    std::vector<index_type>                            m_allowed_nodes;
-    mutable std::unordered_map<index_type, index_type> m_numa_map;
+    std::vector<index_type> m_host_nodes;
+    std::vector<index_type> m_device_nodes;
+    std::vector<index_type> m_allowed_nodes;
+    std::vector<index_type> m_cpu_to_node;
 
   private:
     numa_tools() HWMALLOC_NUMA_CONDITIONAL_NOEXCEPT;

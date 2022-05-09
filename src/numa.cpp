@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstdint>
+#include <sys/sysinfo.h>
 
 #ifdef HWMALLOC_NUMA_THROWS
 #include <stdexcept>
@@ -79,6 +80,13 @@ numa_tools::discover_nodes() noexcept
     for (index_type i = 0; i < node_mask->size; ++i)
         if (numa_bitmask_isbitset(node_mask, i)) m_allowed_nodes.push_back(i);
 
+    m_cpu_to_node.resize(get_nprocs());
+    for (int i = 0; i < (int)m_cpu_to_node.size(); ++i)
+    {
+        int const n = numa_node_of_cpu(i);
+        m_cpu_to_node[i] = n < 0 ? 0 : n;
+    }
+
     is_initialized_ = true;
 }
 
@@ -91,15 +99,7 @@ numa_tools::preferred_node() const noexcept
 numa_tools::index_type
 numa_tools::local_node() const noexcept
 {
-    auto const cpu = sched_getcpu();
-    auto       it = m_numa_map.find(cpu);
-    if (it != m_numa_map.end()) { return it->second; }
-    else
-    {
-        auto const node = numa_node_of_cpu(cpu);
-        m_numa_map[cpu] = node;
-        return node;
-    }
+    return m_cpu_to_node[sched_getcpu()];
 }
 
 bool
