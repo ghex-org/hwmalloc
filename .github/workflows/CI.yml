@@ -60,7 +60,7 @@ jobs:
 
   build-hip:
     runs-on: ubuntu-latest
-    container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi-atlas-parmetis-cuda-hip
+    container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi-atlas-parmetis-hip
     steps:
       - uses: actions/checkout@v1
       - name: Configure
