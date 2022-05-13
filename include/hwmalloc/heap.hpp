@@ -214,7 +214,8 @@ class heap
     pointer register_user_allocation(void* ptr, std::size_t size)
     {
         detail::user_allocation<Context> ua{m_context, ptr, size};
-        return {block_type{nullptr, ptr, ptr, false, std::move(ua.m_region)}};
+        auto p = block_type{nullptr, ptr, ptr, false, ua.m_region.get_handle(0,size)};
+        return {p};
     }
 
 #if HWMALLOC_ENABLE_DEVICE
