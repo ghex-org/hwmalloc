@@ -19,9 +19,6 @@ template<typename Context>
 class segment;
 
 template<typename Context>
-struct user_allocation;
-
-template<typename Context>
 struct block_t
 {
     using region_traits_type = region_traits<Context>;
@@ -30,11 +27,11 @@ struct block_t
     using device_handle_type = typename region_traits_type::device_handle_type;
 #endif
     using segment_type = segment<Context>;
-    using user_allocation_type = user_allocation<Context>;
 
     segment_type*         m_segment = nullptr;
-    user_allocation_type* m_user_allocation = nullptr;
     void*                 m_ptr = nullptr;
+    void*                 m_user_ptr = nullptr;
+    bool                  m_user_delete = false;
     handle_type           m_handle;
 #if HWMALLOC_ENABLE_DEVICE
     void*              m_device_ptr = nullptr;
@@ -52,8 +49,7 @@ struct block_t
     void release() const noexcept
     {
         if (m_segment) release_from_segment();
-        else if (m_user_allocation)
-            release_user_allocation();
+        else release_user_allocation();
     }
 };
 
