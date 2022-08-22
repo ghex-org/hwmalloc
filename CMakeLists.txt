@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 # CMake version is set at 3.17 because of find_package(CUDAToolkit)
 # TODO: find a workaround to be able to lower the version requirement
-project(hwmalloc VERSION 0.1 LANGUAGES CXX)
+project(hwmalloc VERSION 1.0.0 LANGUAGES CXX)
 
 # ---------------------------------------------------------------------
 # CMake setup, C++ version, build type, modules, etc
@@ -32,6 +32,10 @@ target_link_libraries(hwmalloc PRIVATE NUMA::libnuma)
 set(HWMALLOC_NUMA_THROWS OFF CACHE BOOL "True if numa_tools may throw during initialization")
 if (HWMALLOC_NUMA_THROWS)
     target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_THROWS)
+endif()
+set(HWMALLOC_NUMA_FOR_LOCAL ON CACHE BOOL "Use numa_tools for local node allocations")
+if (HWMALLOC_NUMA_FOR_LOCAL)
+    target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_FOR_LOCAL)
 endif()
 
 # ---------------------------------------------------------------------
