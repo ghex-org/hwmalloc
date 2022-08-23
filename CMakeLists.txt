@@ -22,7 +22,7 @@ list(APPEND CMAKE_MODULE_PATH "${HWMALLOC_MODULE_PATH}")
 include(hwmalloc_macros)
 add_library(hwmalloc SHARED)
 hwmalloc_target_compile_options(hwmalloc)
-#add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
+add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
 
 # ---------------------------------------------------------------------
 # NUMA setup
@@ -117,5 +117,6 @@ install(
         ${CMAKE_CURRENT_LIST_DIR}/cmake/FindNUMA.cmake
     DESTINATION
         ${CMAKE_INSTALL_LIBDIR}/cmake)
+
 export(EXPORT HWMALLOC-targets
   FILE "${CMAKE_CURRENT_BINARY_DIR}/HWMALLOC-targets.cmake")
