@@ -41,7 +41,8 @@ class pool
         else if (a.node != expected_numa_node)
         {
             numa().free(a);
-            throw std::runtime_error("could not allocate on requested numa node");
+            throw std::runtime_error("could not allocate on requested numa node "
+              + std::to_string(expected_numa_node));
         }
         return a;
     }
@@ -72,7 +73,7 @@ class pool
 
             auto s = std::make_unique<segment_type>(this,
                 hwmalloc::register_memory(*m_context, a.ptr, a.size), a,
-                hwmalloc::register_device_memory(*m_context, device_ptr, a.size), device_ptr,
+                hwmalloc::register_device_memory(*m_context, m_device_id, device_ptr, a.size), device_ptr,
                 m_device_id, m_block_size, m_free_stack);
             m_segments[s.get()] = std::move(s);
             set_device_id(tmp);

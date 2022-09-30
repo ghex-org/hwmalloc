@@ -10,6 +10,7 @@
 #include <hwmalloc/device.hpp>
 #include <hwmalloc/log.hpp>
 #include <cstdint>
+#include <iomanip>
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
@@ -48,8 +49,13 @@ device_malloc(std::size_t size)
 {
     void* ptr;
     HWMALLOC_CHECK_CUDA_RESULT(cudaMalloc(&ptr, size));
-    HWMALLOC_LOG("allocating", size, "bytes using cudaMalloc on device", get_device_id(), ":",
-        (std::uintptr_t)ptr);
+
+#ifdef HWMALLOC_ENABLE_LOGGING
+    std::stringstream tmp;
+    tmp << std::right << "0x" << std::setfill('0') << std::setw(12) << std::noshowbase
+            << std::hex << reinterpret_cast<uintptr_t>(ptr);
+    HWMALLOC_LOG("allocating", size, "bytes using cudaMalloc on device", get_device_id(), ":", tmp.str());
+#endif
     return ptr;
 }
 
