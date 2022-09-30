@@ -18,21 +18,23 @@ namespace detail
 // default implementation: call normal registration
 template<class Context>
 constexpr auto
-register_device_memory(Context&& c, void* ptr, std::size_t size) noexcept(
+register_device_memory(Context&& c, int device_id, void* ptr, std::size_t size) noexcept(
     noexcept(hwmalloc::register_memory(std::forward<Context>(c), ptr, size)))
     -> decltype(hwmalloc::register_memory(std::forward<Context>(c), ptr, size))
 {
+    std::cout << "\n\n\nregister_device_memory 1 Device id is " << device_id << "\n\n\n" << std::endl;
     return hwmalloc::register_memory(std::forward<Context>(c), ptr, size);
 }
 
 struct register_device_fn
 {
     template<typename Context>
-    constexpr auto operator()(Context&& c, void* ptr, std::size_t size) const
-        noexcept(noexcept(register_device_memory(std::forward<Context>(c), ptr, size)))
-            -> decltype(register_device_memory(std::forward<Context>(c), ptr, size))
+    constexpr auto operator()(Context&& c, int device_id, void* ptr, std::size_t size) const
+        noexcept(noexcept(register_device_memory(std::forward<Context>(c), device_id, ptr, size)))
+            -> decltype(register_device_memory(std::forward<Context>(c), device_id, ptr, size))
     {
-        return register_device_memory(std::forward<Context>(c), ptr, size);
+        std::cout << "\n\n\nregister_device_memory 2 Device id is " << device_id << "\n\n\n" << std::endl;
+        return register_device_memory(std::forward<Context>(c), device_id, ptr, size);
     }
 };
 } // namespace detail

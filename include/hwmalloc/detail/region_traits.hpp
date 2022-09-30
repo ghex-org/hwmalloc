@@ -39,7 +39,7 @@ struct region_traits
 
 #if HWMALLOC_ENABLE_DEVICE
     using device_region_type =
-        decltype(hwmalloc::register_device_memory(*((Context*)0), nullptr, 0u));
+        decltype(hwmalloc::register_device_memory(*((Context*)0), int(0), nullptr, 0u));
 
     static_assert(!std::is_copy_constructible<device_region_type>::value,
         "device_region is copy constructible");
