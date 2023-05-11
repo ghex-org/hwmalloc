@@ -1,7 +1,7 @@
 /*
  * ghex-org
  *
- * Copyright (c) 2014-2021, ETH Zurich
+ * Copyright (c) 2014-2023, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -56,44 +56,58 @@ numa_tools::~numa_tools() noexcept { numa_free_cpumask(task_cpu_mask_ptr); }
 void
 numa_tools::discover_nodes() noexcept
 {
+    std::vector<index_type> host_nodes_;
+    std::vector<index_type> allowed_nodes_;
+    std::vector<index_type> local_nodes_;
+    std::vector<index_type> device_nodes_;
+
+    // detect each cpu's local node
+    m_cpu_to_node.resize(get_nprocs());
+    for (int cpu = 0; cpu < get_nprocs(); ++cpu)
+    {
+        m_cpu_to_node[cpu] = numa_node_of_cpu(cpu);
+        if (numa_bitmask_isbitset(task_cpu_mask_ptr, cpu))
+        {
+            local_nodes_.push_back(m_cpu_to_node[cpu]);
+        }
+    }
+    std::sort(local_nodes_.begin(), local_nodes_.end());
+    local_nodes_.resize(
+        std::unique(local_nodes_.begin(), local_nodes_.end()) - local_nodes_.begin());
+
     // allocate a cpu mask
     auto cpu_mask_ptr = numa_allocate_cpumask();
     // get maximum number of nodes
     const auto num_nodes = numa_all_nodes_ptr->size;
     // loop over nodes
     for (index_type i = 0; i < num_nodes; ++i)
+    {
         // bit i is set if the calling process can access node i
         if (numa_bitmask_isbitset(numa_all_nodes_ptr, i))
         {
             // check whether the node is host or device by
             // converting node to a bitset of cpus associated with it
             numa_node_to_cpus(i, cpu_mask_ptr);
+
             // if there are any cpus, it is a host node
-            if (numa_bitmask_weight(cpu_mask_ptr) > 0) m_host_nodes.push_back(i);
+            if (numa_bitmask_weight(cpu_mask_ptr) > 0) host_nodes_.push_back(i);
             else
-                m_device_nodes.push_back(i);
+                device_nodes_.push_back(i);
         }
+    }
     numa_free_cpumask(cpu_mask_ptr);
 
-    // find the nodes on which the current task can allocate
+    // find all allowed nodes
     const auto node_mask = numa_get_mems_allowed();
     for (index_type i = 0; i < node_mask->size; ++i)
-        if (numa_bitmask_isbitset(node_mask, i)) m_allowed_nodes.push_back(i);
+        if (numa_bitmask_isbitset(node_mask, i)) allowed_nodes_.push_back(i);
 
-    m_cpu_to_node.resize(get_nprocs());
-    for (int i = 0; i < (int)m_cpu_to_node.size(); ++i)
-    {
-        int const n = numa_node_of_cpu(i);
-        m_cpu_to_node[i] = n < 0 ? 0 : n;
-    }
+    m_host_nodes = node_map(std::move(host_nodes_));
+    m_allowed_nodes = node_map(std::move(allowed_nodes_));
+    m_local_nodes = node_map(std::move(local_nodes_));
+    m_device_nodes = node_map(std::move(device_nodes_));
 
     is_initialized_ = true;
-}
-
-numa_tools::index_type
-numa_tools::preferred_node() const noexcept
-{
-    return numa_preferred();
 }
 
 numa_tools::index_type
@@ -105,15 +119,13 @@ numa_tools::local_node() const noexcept
 bool
 numa_tools::can_allocate_on(index_type node) const noexcept
 {
-    auto it = std::lower_bound(m_allowed_nodes.cbegin(), m_allowed_nodes.cend(), node);
-    if (it == m_allowed_nodes.cend()) return false;
-    return *it == node;
+    return allowed_nodes().count(node) > 0u;
 }
 
 numa_tools::allocation
 numa_tools::allocate(size_type num_pages) const noexcept
 {
-    return allocate(num_pages, preferred_node());
+    return allocate(num_pages, local_node());
 }
 
 numa_tools::allocation

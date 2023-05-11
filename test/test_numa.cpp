@@ -1,7 +1,7 @@
 /*
  * ghex-org
  *
- * Copyright (c) 2014-2021, ETH Zurich
+ * Copyright (c) 2014-2023, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -18,7 +18,17 @@ TEST(numa, discover)
 
     EXPECT_TRUE(numa().is_initialized());
 
-    std::cout << numa().num_host_nodes() << std::endl;
+    auto print_nodes = [](const auto& nodes) {
+        std::cout << nodes.size() << ":   ";
+        for (auto n : nodes) std::cout << n.first << " ";
+        std::cout << std::endl;
+    };
+
+    print_nodes(numa().host_nodes());
+    print_nodes(numa().allowed_nodes());
+    print_nodes(numa().local_nodes());
+    print_nodes(numa().device_nodes());
+
     std::cout << numa().can_allocate_on(0) << std::endl;
     std::cout << numa().can_allocate_on(1) << std::endl;
     std::cout << numa().can_allocate_on(2) << std::endl;
@@ -49,7 +59,7 @@ TEST(numa, allocate)
 
     auto b = numa().allocate(1, 10000);         // try allocating on impossible node
     EXPECT_TRUE(b);                             // b should be a valid allocation
-    EXPECT_EQ(b.node, numa().preferred_node()); // b should be on preferred node
+    EXPECT_EQ(b.node, numa().local_node());     // b should be on local node
     EXPECT_EQ(b.size, 1 * numa().page_size());  // b should be 1 page
     EXPECT_FALSE(b.use_numa_free);
     numa().free(b);

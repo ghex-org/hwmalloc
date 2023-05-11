@@ -1,7 +1,7 @@
 /*
  * ghex-org
  *
- * Copyright (c) 2014-2021, ETH Zurich
+ * Copyright (c) 2014-2023, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -43,21 +43,21 @@ class fixed_size_heap
     , m_segment_size(segment_size)
     , m_never_free(never_free)
     , m_num_reserve_segments{num_reserve_segments}
-    , m_pools(numa().num_host_nodes())
+    , m_pools(numa().allowed_nodes().size())
 #if HWMALLOC_ENABLE_DEVICE
     , m_num_devices{(std::size_t)get_num_devices()}
-    , m_device_pools(numa().num_host_nodes() * m_num_devices)
+    , m_device_pools(numa().allowed_nodes().size() * m_num_devices)
 #endif
     {
-        for (unsigned int i = 0; i < numa().num_host_nodes(); ++i)
+        for (auto [n, i] : numa().allowed_nodes())
         {
-            m_pools[i] = std::make_unique<pool_type>(m_context, m_block_size, m_segment_size, i,
+            m_pools[i] = std::make_unique<pool_type>(m_context, m_block_size, m_segment_size, n,
                 m_never_free, m_num_reserve_segments);
 #if HWMALLOC_ENABLE_DEVICE
             for (unsigned int j = 0; j < m_num_devices; ++j)
             {
                 m_device_pools[i * m_num_devices + j] = std::make_unique<pool_type>(m_context,
-                    m_block_size, m_segment_size, i, (int)j, m_never_free, m_num_reserve_segments);
+                    m_block_size, m_segment_size, n, (int)j, m_never_free, m_num_reserve_segments);
             }
 #endif
         }
@@ -66,16 +66,28 @@ class fixed_size_heap
     fixed_size_heap(fixed_size_heap const&) = delete;
     fixed_size_heap(fixed_size_heap&&) = default;
 
-    block_type allocate(std::size_t numa_node) { return m_pools[numa_node]->allocate(); }
+    block_type allocate(std::size_t numa_node)
+    {
+        return m_pools[numa_node_index(numa_node)]->allocate();
+    }
 
 #if HWMALLOC_ENABLE_DEVICE
     block_type allocate(std::size_t numa_node, int device_id)
     {
-        return m_device_pools[numa_node * m_num_devices + device_id]->allocate();
+        return m_device_pools[numa_node_index(numa_node) * m_num_devices + device_id]->allocate();
     }
 #endif
 
     void free(block_type const& b) { b.release(); }
+
+  private:
+    auto numa_node_index(std::size_t numa_node) const noexcept
+    {
+        auto it = numa().allowed_nodes().find(numa_node);
+        return (it != numa().allowed_nodes().end()
+                    ? it->second
+                    : numa().allowed_nodes().find(numa().local_node())->second);
+    }
 };
 
 } // namespace detail
