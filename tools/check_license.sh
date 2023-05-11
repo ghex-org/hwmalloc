@@ -17,7 +17,10 @@ $(cat ${file})" > ${file}
         fi
     else
         if [ "$1" == "update" ]; then
-            head -$LICENSELEN ${file} | diff -u LICENSE_HEADER - | patch -R ${file}
+            #head -$LICENSELEN ${file} | diff -u LICENSE_HEADER - | patch -R ${file}
+            sed -i '0,/\*\//d' ${file}
+            echo "$(cat LICENSE_HEADER)
+$(cat ${file})" > ${file}
         else
             if [[ $(head -$LICENSELEN ${file} | diff -u LICENSE_HEADER -) ]]; then
                 echo "found wrong copyright in ${file} -- use update"
