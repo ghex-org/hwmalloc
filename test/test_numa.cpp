@@ -7,6 +7,7 @@
  * Please, refer to the LICENSE file in the root directory.
  * SPDX-License-Identifier: BSD-3-Clause
  */
+#include <string>
 #include <gtest/gtest.h>
 
 #include <hwmalloc/numa.hpp>
@@ -18,20 +19,19 @@ TEST(numa, discover)
 
     EXPECT_TRUE(numa().is_initialized());
 
-    auto print_nodes = [](const auto& nodes) {
-        std::cout << nodes.size() << ":   ";
+    auto print_nodes = [](std::string name, const auto& nodes) {
+        std::cout << name << " (size = " << nodes.size() << "):   ";
         for (auto n : nodes) std::cout << n.first << " ";
         std::cout << std::endl;
     };
 
-    print_nodes(numa().host_nodes());
-    print_nodes(numa().allowed_nodes());
-    print_nodes(numa().local_nodes());
-    print_nodes(numa().device_nodes());
+    print_nodes("host nodes  ", numa().host_nodes());
+    print_nodes("local nodes ", numa().local_nodes());
+    print_nodes("device nodes", numa().device_nodes());
 
-    std::cout << numa().can_allocate_on(0) << std::endl;
-    std::cout << numa().can_allocate_on(1) << std::endl;
-    std::cout << numa().can_allocate_on(2) << std::endl;
+    std::cout << "can allocate on 0: " << numa().can_allocate_on(0) << std::endl;
+    std::cout << "can allocate on 1: " << numa().can_allocate_on(1) << std::endl;
+    std::cout << "can allocate on 2: " << numa().can_allocate_on(2) << std::endl;
 }
 
 TEST(numa, allocate)
@@ -66,7 +66,7 @@ TEST(numa, allocate)
 
     auto c = numa().allocate_malloc(1);          // use normal malloc and lookup numa node
     EXPECT_TRUE(c);                              // c should be a valid allocation
-    EXPECT_TRUE(numa().can_allocate_on(c.node)); // malloc should have chosen an allowed node
+    EXPECT_TRUE(numa().can_allocate_on(c.node)); // malloc should have chosen a local node
     EXPECT_EQ(c.size, 1 * numa().page_size());   // c should be 1 page
     EXPECT_FALSE(c.use_numa_free);               // use std::free for deallocation
     numa().free(c);

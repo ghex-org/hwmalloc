@@ -57,7 +57,6 @@ void
 numa_tools::discover_nodes() noexcept
 {
     std::vector<index_type> host_nodes_;
-    std::vector<index_type> allowed_nodes_;
     std::vector<index_type> local_nodes_;
     std::vector<index_type> device_nodes_;
 
@@ -97,13 +96,7 @@ numa_tools::discover_nodes() noexcept
     }
     numa_free_cpumask(cpu_mask_ptr);
 
-    // find all allowed nodes
-    const auto node_mask = numa_get_mems_allowed();
-    for (index_type i = 0; i < node_mask->size; ++i)
-        if (numa_bitmask_isbitset(node_mask, i)) allowed_nodes_.push_back(i);
-
     m_host_nodes = node_map(std::move(host_nodes_));
-    m_allowed_nodes = node_map(std::move(allowed_nodes_));
     m_local_nodes = node_map(std::move(local_nodes_));
     m_device_nodes = node_map(std::move(device_nodes_));
 
@@ -119,7 +112,7 @@ numa_tools::local_node() const noexcept
 bool
 numa_tools::can_allocate_on(index_type node) const noexcept
 {
-    return allowed_nodes().count(node) > 0u;
+    return local_nodes().count(node) > 0u;
 }
 
 numa_tools::allocation

@@ -86,7 +86,7 @@ TEST(spread, neverfree)
         pointers.resize(NBUFFERS);
 
         bitmask* nodemask;
-        int      nnodes = hwmalloc::numa().allowed_nodes().size();
+        int      nnodes = hwmalloc::numa().local_nodes().size();
         int      thr_per_node = nthr / nnodes;
         int      local_node = thrid % nnodes;
 
@@ -225,7 +225,7 @@ TEST(spread, free)
         pointers.resize(NBUFFERS);
 
         struct bitmask* nodemask;
-        int             nnodes = hwmalloc::numa().allowed_nodes().size();
+        int             nnodes = hwmalloc::numa().local_nodes().size();
         int             thr_per_node = nthr / nnodes;
         int             local_node = thrid % nnodes;
 

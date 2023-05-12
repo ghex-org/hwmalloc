@@ -43,13 +43,13 @@ class fixed_size_heap
     , m_segment_size(segment_size)
     , m_never_free(never_free)
     , m_num_reserve_segments{num_reserve_segments}
-    , m_pools(numa().allowed_nodes().size())
+    , m_pools(numa().local_nodes().size())
 #if HWMALLOC_ENABLE_DEVICE
     , m_num_devices{(std::size_t)get_num_devices()}
-    , m_device_pools(numa().allowed_nodes().size() * m_num_devices)
+    , m_device_pools(numa().local_nodes().size() * m_num_devices)
 #endif
     {
-        for (auto [n, i] : numa().allowed_nodes())
+        for (auto [n, i] : numa().local_nodes())
         {
             m_pools[i] = std::make_unique<pool_type>(m_context, m_block_size, m_segment_size, n,
                 m_never_free, m_num_reserve_segments);
@@ -83,10 +83,10 @@ class fixed_size_heap
   private:
     auto numa_node_index(std::size_t numa_node) const noexcept
     {
-        auto it = numa().allowed_nodes().find(numa_node);
-        return (it != numa().allowed_nodes().end()
+        auto it = numa().local_nodes().find(numa_node);
+        return (it != numa().local_nodes().end()
                     ? it->second
-                    : numa().allowed_nodes().find(numa().local_node())->second);
+                    : numa().local_nodes().find(numa().local_node())->second);
     }
 };
 

@@ -62,10 +62,10 @@ class numa_tools
                 }
             }
         }
-        node_map(node_map const &) = default;
-        node_map(node_map &&) = default;
-        node_map& operator=(node_map const &) = default;
-        node_map& operator=(node_map &&) = default;
+        node_map(node_map const&) = default;
+        node_map(node_map&&) = default;
+        node_map& operator=(node_map const&) = default;
+        node_map& operator=(node_map&&) = default;
 
         size_type size() const noexcept { return nodes.size(); }
         auto      begin() const noexcept { return nodes.cbegin(); }
@@ -98,10 +98,9 @@ class numa_tools
 
   private:
     std::vector<index_type> m_cpu_to_node;
-    node_map m_host_nodes;
-    node_map m_allowed_nodes;
-    node_map m_local_nodes;
-    node_map m_device_nodes;
+    node_map                m_host_nodes;
+    node_map                m_local_nodes;
+    node_map                m_device_nodes;
 
   private:
     numa_tools() HWMALLOC_NUMA_CONDITIONAL_NOEXCEPT;
@@ -112,17 +111,16 @@ class numa_tools
 
   public:
     const auto& host_nodes() const noexcept { return m_host_nodes; }
-    const auto& allowed_nodes() const noexcept { return m_allowed_nodes; }
     const auto& local_nodes() const noexcept { return m_local_nodes; }
     const auto& device_nodes() const noexcept { return m_device_nodes; }
     index_type  local_node() const noexcept;
 
-    bool        can_allocate_on(index_type node) const noexcept;
-    allocation  allocate(size_type num_pages) const noexcept;
-    allocation  allocate(size_type num_pages, index_type node) const noexcept;
-    allocation  allocate_malloc(size_type num_pages) const noexcept;
-    void        free(allocation const& a) const noexcept;
-    index_type  get_node(void* ptr) const noexcept;
+    bool       can_allocate_on(index_type node) const noexcept;
+    allocation allocate(size_type num_pages) const noexcept;
+    allocation allocate(size_type num_pages, index_type node) const noexcept;
+    allocation allocate_malloc(size_type num_pages) const noexcept;
+    void       free(allocation const& a) const noexcept;
+    index_type get_node(void* ptr) const noexcept;
 
   private:
     void discover_nodes() noexcept;
