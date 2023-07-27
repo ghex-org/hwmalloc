@@ -9,6 +9,8 @@
  */
 #pragma once
 
+#include <utility>
+#include <type_traits>
 #include <hwmalloc/fancy_ptr/ptr.hpp>
 #include <hwmalloc/fancy_ptr/const_ptr.hpp>
 
@@ -28,6 +30,11 @@ class allocator
     using difference_type = typename pointer::difference_type;
     using size_type = std::size_t;
 
+    using propagate_on_container_copy_assignment = std::true_type;
+    using propagate_on_container_move_assignment = std::true_type;
+    using propagate_on_container_swap = std::true_type;
+    using is_always_equal = std::false_type;
+
     template<typename U>
     struct other_alloc
     {
@@ -40,16 +47,46 @@ class allocator
     std::size_t m_numa_node;
 
   public:
-    allocator()
+    allocator() noexcept
     {
         m_heap = Heap::get_instance().get();
         m_numa_node = 0;
     }
 
-    allocator(Heap* heap, std::size_t numa_node)
+    allocator(Heap* heap, std::size_t numa_node) noexcept
     : m_heap{heap}
     , m_numa_node{numa_node}
     {
+    }
+
+    template<typename U>
+    allocator(const allocator<U, Heap>& other) noexcept
+    : m_heap{other.m_heap}
+    , m_numa_node{other.m_numa_node}
+    {
+    }
+
+    template<typename U>
+    allocator(allocator<U, Heap>&& other) noexcept
+    : m_heap{other.m_heap}
+    , m_numa_node{other.m_numa_node}
+    {
+    }
+
+    template<typename U>
+    allocator& operator=(const allocator<U, Heap>& other) noexcept
+    {
+        m_heap = other.m_heap;
+        m_numa_node = other.m_numa_node;
+        return *this;
+    }
+
+    template<typename U>
+    allocator& operator=(allocator<U, Heap>&& other) noexcept
+    {
+        m_heap = other.m_heap;
+        m_numa_node = other.m_numa_node;
+        return *this;
     }
 
     pointer allocate(size_type n) //, const_void_pointer = const_void_pointer())
@@ -62,6 +99,26 @@ class allocator
     //construct: use default std::allocator_traits implementation
     //destroy:   use default std::allocator_traits implementation
     //max_size:  use default std::allocator_traits implementation
+
+    template<class U, class V>
+    friend bool operator==(const allocator<U, Heap>& lhs, const allocator<V, Heap>& rhs) noexcept
+    {
+        return (lhs.m_heap == rhs.m_heap) && (lhs.m_numa_node == rhs.numa_node);
+    }
+
+    template<class U, class V>
+    friend bool operator!=(const allocator<U, Heap>& lhs, const allocator<V, Heap>& rhs) noexcept
+    {
+        return (lhs.m_heap != rhs.m_heap) || (lhs.m_numa_node != rhs.numa_node);
+    }
+
+    template<class U, class V>
+    friend void swap(allocator<U, Heap>& lhs, allocator<V, Heap>& rhs) noexcept
+    {
+        using std::swap;
+        swap(lhs.m_heap, rhs.m_heap);
+        swap(lhs.m_numa_node, rhs.m_numa_node);
+    }
 };
 
 } // namespace hwmalloc
