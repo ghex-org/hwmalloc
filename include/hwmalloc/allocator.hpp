@@ -100,20 +100,17 @@ class allocator
     //destroy:   use default std::allocator_traits implementation
     //max_size:  use default std::allocator_traits implementation
 
-    template<class U, class V>
-    friend bool operator==(const allocator<U, Heap>& lhs, const allocator<V, Heap>& rhs) noexcept
+    friend bool operator==(const allocator& lhs, const allocator& rhs) noexcept
     {
         return (lhs.m_heap == rhs.m_heap) && (lhs.m_numa_node == rhs.numa_node);
     }
 
-    template<class U, class V>
-    friend bool operator!=(const allocator<U, Heap>& lhs, const allocator<V, Heap>& rhs) noexcept
+    friend bool operator!=(const allocator& lhs, const allocator& rhs) noexcept
     {
         return (lhs.m_heap != rhs.m_heap) || (lhs.m_numa_node != rhs.numa_node);
     }
 
-    template<class U, class V>
-    friend void swap(allocator<U, Heap>& lhs, allocator<V, Heap>& rhs) noexcept
+    friend void swap(allocator& lhs, allocator& rhs) noexcept
     {
         using std::swap;
         swap(lhs.m_heap, rhs.m_heap);
