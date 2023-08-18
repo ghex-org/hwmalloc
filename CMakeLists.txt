@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.17)
 # CMake version is set at 3.17 because of find_package(CUDAToolkit)
 # TODO: find a workaround to be able to lower the version requirement
-project(hwmalloc VERSION 0.1 LANGUAGES CXX)
+project(hwmalloc VERSION 0.2.0 LANGUAGES CXX)
 
 # ---------------------------------------------------------------------
 # CMake setup, C++ version, build type, modules, etc
 # ---------------------------------------------------------------------
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 if(NOT CMAKE_BUILD_TYPE) # AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build." FORCE)
@@ -22,7 +22,7 @@ list(APPEND CMAKE_MODULE_PATH "${HWMALLOC_MODULE_PATH}")
 include(hwmalloc_macros)
 add_library(hwmalloc SHARED)
 hwmalloc_target_compile_options(hwmalloc)
-#add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
+add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
 
 # ---------------------------------------------------------------------
 # NUMA setup
@@ -32,6 +32,10 @@ target_link_libraries(hwmalloc PRIVATE NUMA::libnuma)
 set(HWMALLOC_NUMA_THROWS OFF CACHE BOOL "True if numa_tools may throw during initialization")
 if (HWMALLOC_NUMA_THROWS)
     target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_THROWS)
+endif()
+set(HWMALLOC_NUMA_FOR_LOCAL ON CACHE BOOL "Use numa_tools for local node allocations")
+if (HWMALLOC_NUMA_FOR_LOCAL)
+    target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_FOR_LOCAL)
 endif()
 
 # ---------------------------------------------------------------------
@@ -113,5 +117,6 @@ install(
         ${CMAKE_CURRENT_LIST_DIR}/cmake/FindNUMA.cmake
     DESTINATION
         ${CMAKE_INSTALL_LIBDIR}/cmake)
+
 export(EXPORT HWMALLOC-targets
   FILE "${CMAKE_CURRENT_BINARY_DIR}/HWMALLOC-targets.cmake")

@@ -1,7 +1,7 @@
 /*
  * ghex-org
  *
- * Copyright (c) 2014-2021, ETH Zurich
+ * Copyright (c) 2014-2023, ETH Zurich
  * All rights reserved.
  *
  * Please, refer to the LICENSE file in the root directory.
@@ -86,7 +86,7 @@ TEST(spread, neverfree)
         pointers.resize(NBUFFERS);
 
         bitmask* nodemask;
-        int      nnodes = hwmalloc::numa().num_host_nodes();
+        int      nnodes = hwmalloc::numa().local_nodes().size();
         int      thr_per_node = nthr / nnodes;
         int      local_node = thrid % nnodes;
 
@@ -225,7 +225,7 @@ TEST(spread, free)
         pointers.resize(NBUFFERS);
 
         struct bitmask* nodemask;
-        int             nnodes = hwmalloc::numa().num_host_nodes();
+        int             nnodes = hwmalloc::numa().local_nodes().size();
         int             thr_per_node = nthr / nnodes;
         int             local_node = thrid % nnodes;
 
