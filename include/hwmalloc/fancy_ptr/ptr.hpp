@@ -13,6 +13,7 @@
 #include <hwmalloc/fancy_ptr/const_void_ptr.hpp>
 #include <hwmalloc/fancy_ptr/memfct_ptr.hpp>
 #include <iterator>
+#include <type_traits>
 
 namespace hwmalloc
 {
@@ -125,7 +126,8 @@ class hw_ptr
         return *this;
     }
 
-    friend this_type operator+(this_type a, std::ptrdiff_t n) noexcept { return (a += n); }
+    template<typename I, std::enable_if_t<std::is_integral_v<I>, bool> = true>
+    friend this_type operator+(this_type a, std::ptrdiff_t n) noexcept { return (a += static_cast<std::ptrdiff_t>(n)); }
 
     this_type& operator--() noexcept
     {
@@ -155,7 +157,8 @@ class hw_ptr
         return *this;
     }
 
-    friend this_type operator-(this_type a, std::ptrdiff_t n) noexcept { return (a -= n); }
+    template<typename I, std::enable_if_t<std::is_integral_v<I>, bool> = true>
+    friend this_type operator-(this_type a, std::ptrdiff_t n) noexcept { return (a -= static_cast<std::ptrdiff_t>(n)); }
 
     friend difference_type operator-(this_type const& a, this_type const& b) noexcept
     {
