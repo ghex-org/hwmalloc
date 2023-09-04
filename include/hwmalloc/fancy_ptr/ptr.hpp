@@ -125,7 +125,7 @@ class hw_ptr
         return *this;
     }
 
-    friend this_type operator+(this_type a, std::size_t n) noexcept { return (a += n); }
+    friend this_type operator+(this_type a, std::ptrdiff_t n) noexcept { return (a += n); }
 
     this_type& operator--() noexcept
     {
@@ -155,7 +155,7 @@ class hw_ptr
         return *this;
     }
 
-    friend this_type operator-(this_type a, std::size_t n) noexcept { return (a -= n); }
+    friend this_type operator-(this_type a, std::ptrdiff_t n) noexcept { return (a -= n); }
 
     friend difference_type operator-(this_type const& a, this_type const& b) noexcept
     {
