@@ -265,7 +265,7 @@ struct pointer_traits<hwmalloc::hw_void_ptr<Block, const void*>> {
 template<typename T, typename Block>
 struct pointer_traits<hwmalloc::hw_ptr<T, Block>> {
     using pointer = hwmalloc::hw_ptr<T, Block>;
-    using element_type = const void;
+    using element_type = T;
     using difference_type = std::ptrdiff_t;
 
     template<class U>
