@@ -9,6 +9,7 @@
  */
 #pragma once
 
+#include <memory>
 #include <hwmalloc/fancy_ptr/ptr.hpp>
 
 namespace hwmalloc
@@ -166,4 +167,111 @@ constexpr hw_void_ptr<Block, void const*>::operator hw_ptr<T, Block>() const noe
     return p;
 }
 
+namespace detail {
+
+template<typename A, typename B>
+struct _rebind;
+
+template<typename T, typename Block>
+struct _rebind<hw_ptr<T, Block>, void>
+{
+    using type = hw_void_ptr<Block, void*>;
+};
+
+template<typename T, typename Block>
+struct _rebind<hw_ptr<T, Block>, const void>
+{
+    using type = hw_void_ptr<Block, const void*>;
+};
+
+template<typename T, typename Block, typename U>
+struct _rebind<hw_ptr<T, Block>, U>
+{
+    using type = hw_ptr<U, Block>;
+};
+
+
+template<typename Block>
+struct _rebind<hw_void_ptr<Block, void*>, void>
+{
+    using type = hw_void_ptr<Block, void*>;
+};
+
+template<typename Block>
+struct _rebind<hw_void_ptr<Block, void*>, const void>
+{
+    using type = hw_void_ptr<Block, const void*>;
+};
+
+template<typename Block, typename U>
+struct _rebind<hw_void_ptr<Block, void*>, U>
+{
+    using type = hw_ptr<U, Block>;
+};
+
+
+template<typename Block>
+struct _rebind<hw_void_ptr<Block, const void*>, void>
+{
+    using type = hw_void_ptr<Block, void*>;
+};
+
+template<typename Block>
+struct _rebind<hw_void_ptr<Block, const void*>, const void>
+{
+    using type = hw_void_ptr<Block, const void*>;
+};
+
+template<typename Block, typename U>
+struct _rebind<hw_void_ptr<Block, const void*>, U>
+{
+    using type = hw_ptr<U, Block>;
+};
+
+
+template<typename A, typename B>
+using _rebind_t = typename _rebind<A, B>::type;
+
+} // namespace detail
+
 } // namespace hwmalloc
+
+namespace std {
+
+template<typename Block>
+struct pointer_traits<hwmalloc::hw_void_ptr<Block, void*>> {
+    using pointer = hwmalloc::hw_void_ptr<Block, void*>;
+    using element_type = void;
+    using difference_type = std::ptrdiff_t;
+
+    template<class U>
+    using rebind = typename ::hwmalloc::detail::template _rebind_t<pointer,U>;
+
+    static element_type* to_address(pointer p) noexcept { return p.get(); }
+};
+
+template<typename Block>
+struct pointer_traits<hwmalloc::hw_void_ptr<Block, const void*>> {
+    using pointer = hwmalloc::hw_void_ptr<Block, const void*>;
+    using element_type = const void;
+    using difference_type = std::ptrdiff_t;
+
+    template<class U>
+    using rebind = typename ::hwmalloc::detail::template _rebind_t<pointer,U>;
+
+    static element_type* to_address(pointer p) noexcept { return p.get(); }
+};
+
+template<typename T, typename Block>
+struct pointer_traits<hwmalloc::hw_ptr<T, Block>> {
+    using pointer = hwmalloc::hw_ptr<T, Block>;
+    using element_type = T;
+    using difference_type = std::ptrdiff_t;
+
+    template<class U>
+    using rebind = typename ::hwmalloc::detail::template _rebind_t<pointer,U>;
+
+    static element_type* to_address(pointer p) noexcept { return p.get(); }
+};
+
+} // namespace std
