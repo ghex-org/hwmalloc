@@ -56,6 +56,8 @@ jobs:
         name: create buildcache keys
         shell: bash
         run: |
+          mkdir /spack_buildcache
+          mkdir /spack_keys
           export SPACK_DISABLE_LOCAL_CONFIG=true
           export SPACK_USER_CACHE_PATH=/spack/.cache
           export TMP=/spack/.tmp
