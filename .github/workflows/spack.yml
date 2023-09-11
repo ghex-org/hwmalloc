@@ -62,7 +62,7 @@ jobs:
           export SPACK_USER_CACHE_PATH=/spack/.cache
           export TMP=/spack/.tmp
           . /spack/share/spack/setup-env.sh
-          spack gpg create --export-secret /spack_keys/key.private --export /speck_keys/key.public spack-test spacktest@ghex.org
+          spack gpg create --export-secret /spack_keys/key.private --export /spack_keys/key.public spack-test spacktest@ghex.org
       - name: import keys and add cache
         shell: bash
         run: |
