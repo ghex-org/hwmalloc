@@ -18,9 +18,9 @@ jobs:
         #spack-version: ['develop', 'latest_release']
         spack-version: ['v0.20.1']
     steps:
-      - name: install-curl
-        shell: bash
-        run: apt-get install -y curl
+      #- name: install-curl
+      #  shell: bash
+      #  run: apt-get install -y curl
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
