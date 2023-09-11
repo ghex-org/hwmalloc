@@ -26,7 +26,7 @@ jobs:
       - name: install-spack
         run: |
           mkdir /spack
-          git clone --depth 1 --branch v0.20.1 https://github.com/spack/spack.git /spack
+          git clone --depth 1 --branch v0.19.0 https://github.com/spack/spack.git /spack
           echo "making cache dir"
           mkdir /spack/.cache
           mkdir /spack/.tmp
