@@ -10,7 +10,7 @@ jobs:
   build-cpu:
     #runs-on: ubuntu-latest
     runs-on: ${{ matrix.os }}
-    container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi
+    #container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi
     strategy:
       matrix:
         os: [ubuntu-22.04]
@@ -50,7 +50,7 @@ jobs:
           export SPACK_USER_CACHE_PATH=/spack/.cache
           export TMP=/spack/.tmp
           . /spack/share/spack/setup-env.sh
-          spack compiler find
+          #spack compiler find
           spack repo add /repos
       - if: ${{ steps.spack-buildcache.outputs.cache-hit != 'true' }}
         name: create buildcache keys
@@ -82,5 +82,5 @@ jobs:
           . /spack/share/spack/setup-env.sh
           spack spec -I hwmalloc@master
           spack install --test=root hwmalloc@master
-          spack buildcache push --only dependencies /spack_buildcache hwmalloc@master
+          spack buildcache push --only dependencies -a -k mirror /spack_buildcache hwmalloc@master
 
