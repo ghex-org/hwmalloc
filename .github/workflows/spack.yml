@@ -34,10 +34,10 @@ jobs:
           export SPACK_DISABLE_LOCAL_CONFIG=true
           export SPACK_USER_CACHE_PATH=~/spack/.cache
           export TMP=~/spack/.tmp
+          echo "finding compilers"
+          ~/spack/bin/spack compiler find
           echo "sourcing spack setup"
           source ~/spack/share/spack/setup-env.sh
-          echo "finding compilers"
-          spack compiler find
           echo "adding repo"
           spack repo add ~/repos
       - name: build-and-test
