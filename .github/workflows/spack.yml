@@ -42,10 +42,11 @@ jobs:
           echo "adding repo"
           spack repo add /repos
       - name: build-and-test
+        shell: bash
         run: |
           export SPACK_DISABLE_LOCAL_CONFIG=true
           export SPACK_USER_CACHE_PATH=/spack/.cache
           export TMP=/spack/.tmp
-          source /spack/share/spack/setup-env.sh
+          . /spack/share/spack/setup-env.sh
           spack install -v --test=root hwmalloc@master
 
