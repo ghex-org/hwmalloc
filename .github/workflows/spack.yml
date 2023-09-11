@@ -19,11 +19,16 @@ jobs:
         run: |
           mkdir /spack
           git clone --depth 1 --branch v0.20.1 https://github.com/spack/spack.git /spack
+          echo "making cache dir"
           mkdir /spack/.cache
+          echo "exporting spack env variables"
           export SPACK_DISABLE_LOCAL_CONFIG=true
           export SPACK_USER_CACHE_PATH=/spack/.cache
+          echo "sourcing spack setup"
           source /spack/share/spack/setup-env.sh
+          echo "finding compilers"
           spack compiler find
+          echo "adding repo"
           spack repo add /repos
       - name: build-and-test
         run: |
