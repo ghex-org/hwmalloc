@@ -18,13 +18,6 @@ jobs:
         #spack-version: ['develop', 'latest_release']
         spack-version: ['v0.20.1']
     steps:
-      - name: print system info
-        shell: bash
-        run: |
-          echo "USER=${USER}"
-          _user="$(id -u -n)"
-          echo "user=${_user}"
-          echo ${{ github.run_id }}
       - name: "Linux: update"
         run: |
           sudo apt-get update
