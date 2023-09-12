@@ -26,14 +26,8 @@ jobs:
           echo "user=${_user}"
           echo ${{ github.run_id }}
       - name: "Linux: update"
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           sudo apt-get update
-          #sudo apt-get install -y libopenmpi-dev ninja-build ccache ${{ matrix.config.cc }}
-      #- name: "MacOS: update"
-      #  if: ${{ startsWith(matrix.config.os, 'macos') }}
-      #  run: |
-      #    brew install openmpi ninja ccache
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -43,13 +37,7 @@ jobs:
           sudo chown -R ${USER}:${USER} /repos
           git clone https://github.com/ghex-org/spack-repos.git /repos
       # figure out vector extensions for cache key
-      - if: ${{ contains(matrix.config.os, 'macos') }}
-        name: Check vector extensions
-        # assume uniform hardware for macos
-        run: |
-          echo "VECTOR_EXTENSIONS=" >> $GITHUB_ENV
-      - if: ${{ contains(matrix.config.os, 'ubuntu') }}
-        name: Check vector extensions
+      - name: Check vector extensions
         run: |
           HAS_AVX512F=$([[ $(lscpu | grep "avx512f" | wc -l) -eq 1 ]] && echo "_avx512f" || echo "")
           HAS_AVX2=$([[ $(lscpu | grep "avx2" | wc -l) -eq 1 ]] && echo "_avx2" || echo "")
