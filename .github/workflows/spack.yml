@@ -96,4 +96,13 @@ jobs:
           spack spec -I hwmalloc@master
           spack install --test=root hwmalloc@master
           spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@master
-
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: hwmalloc
+      - name: build-and-test-develop
+        run: |
+          . /spack/share/spack/my-setup-env.sh
+          cd hwmalloc
+          spack dev-build --test=root hwmalloc@develop
+          spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop
