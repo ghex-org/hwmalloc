@@ -28,6 +28,10 @@ jobs:
         run: |
           sudo mkdir /repos
           sudo chown -R ${USER}:${USER} /repos
+          sudo mkdir -p /spack_buildcache
+          sudo chown -R ${USER}:${USER} /spack_buildcache
+          sudo mkdir -p /spack_keys
+          sudo chown -R ${USER}:${USER} /spack_keys
           git clone https://github.com/ghex-org/spack-repos.git /repos
       # figure out vector extensions for cache key
       - name: Check vector extensions
@@ -72,9 +76,9 @@ jobs:
         name: create buildcache keys
         shell: bash
         run: |
-          sudo mkdir /spack_buildcache
+          sudo mkdir -p /spack_buildcache
           sudo chown -R ${USER}:${USER} /spack_buildcache
-          sudo mkdir /spack_keys
+          sudo mkdir -p /spack_keys
           sudo chown -R ${USER}:${USER} /spack_keys
           . /spack/share/spack/my-setup-env.sh
           spack gpg create --export-secret /spack_keys/key.private --export /spack_keys/key.public spack-test spacktest@ghex.org
