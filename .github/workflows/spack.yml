@@ -110,7 +110,7 @@ jobs:
         run: |
           . /spack/share/spack/my-setup-env.sh
           cd hwmalloc
-          spack dev-build hmalloc@develop +cuda
+          spack dev-build hwmalloc@develop +cuda
           spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop +cuda
       #- name: build-and-test-develop
       #  run: |
