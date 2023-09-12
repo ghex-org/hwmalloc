@@ -25,12 +25,22 @@ jobs:
           _user="$(id -u -n)"
           echo "user=${_user}"
           echo ${{ github.run_id }}
+      - name: "Linux: update"
+        if: ${{ startsWith(matrix.config.os, 'ubuntu') }}
+        run: |
+          sudo apt-get update
+          #sudo apt-get install -y libopenmpi-dev ninja-build ccache ${{ matrix.config.cc }}
+      #- name: "MacOS: update"
+      #  if: ${{ startsWith(matrix.config.os, 'macos') }}
+      #  run: |
+      #    brew install openmpi ninja ccache
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
       - name: install-ghex-org-packages
         run: |
-          mkdir /repos
+          sudo mkdir /repos
+          sudo chown -r ${USER}:${USER} /repos
           git clone https://github.com/ghex-org/spack-repos.git /repos
       # figure out vector extensions for cache key
       - if: ${{ contains(matrix.config.os, 'macos') }}
@@ -61,7 +71,8 @@ jobs:
       - name: install-spack
         shell: bash
         run: |
-          mkdir /spack
+          sudo mkdir /spack
+          sudo chown -r ${USER}:${USER} /spack
           git clone --depth 1 --branch ${{ matrix.spack-version }}  https://github.com/spack/spack.git /spack
           mkdir /spack/.cache
           mkdir /spack/.tmp
@@ -74,14 +85,16 @@ jobs:
           echo "export TMP=/spack/.tmp" >> /spack/share/spack/my-setup-env.sh
           echo ". /spack/share/spack/setup-env.sh" >> /spack/share/spack/my-setup-env.sh
           . /spack/share/spack/my-setup-env.sh
-          #spack compiler find
+          spack compiler find
           spack repo add /repos
       - if: ${{ steps.spack-buildcache.outputs.cache-hit != 'true' }}
         name: create buildcache keys
         shell: bash
         run: |
-          mkdir /spack_buildcache
-          mkdir /spack_keys
+          sudo mkdir /spack_buildcache
+          sudo chown -r ${USER}:${USER} /spack_buildcache
+          sudo mkdir /spack_keys
+          sudo chown -r ${USER}:${USER} /spack_keys
           . /spack/share/spack/my-setup-env.sh
           spack gpg create --export-secret /spack_keys/key.private --export /spack_keys/key.public spack-test spacktest@ghex.org
       - name: import keys and add cache
