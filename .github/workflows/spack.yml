@@ -26,7 +26,7 @@ jobs:
           echo "user=${_user}"
           echo ${{ github.run_id }}
       - name: "Linux: update"
-        if: ${{ startsWith(matrix.config.os, 'ubuntu') }}
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
         run: |
           sudo apt-get update
           #sudo apt-get install -y libopenmpi-dev ninja-build ccache ${{ matrix.config.cc }}
@@ -40,7 +40,7 @@ jobs:
       - name: install-ghex-org-packages
         run: |
           sudo mkdir /repos
-          sudo chown -r ${USER}:${USER} /repos
+          sudo chown -R ${USER}:${USER} /repos
           git clone https://github.com/ghex-org/spack-repos.git /repos
       # figure out vector extensions for cache key
       - if: ${{ contains(matrix.config.os, 'macos') }}
@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           sudo mkdir /spack
-          sudo chown -r ${USER}:${USER} /spack
+          sudo chown -R ${USER}:${USER} /spack
           git clone --depth 1 --branch ${{ matrix.spack-version }}  https://github.com/spack/spack.git /spack
           mkdir /spack/.cache
           mkdir /spack/.tmp
@@ -92,9 +92,9 @@ jobs:
         shell: bash
         run: |
           sudo mkdir /spack_buildcache
-          sudo chown -r ${USER}:${USER} /spack_buildcache
+          sudo chown -R ${USER}:${USER} /spack_buildcache
           sudo mkdir /spack_keys
-          sudo chown -r ${USER}:${USER} /spack_keys
+          sudo chown -R ${USER}:${USER} /spack_keys
           . /spack/share/spack/my-setup-env.sh
           spack gpg create --export-secret /spack_keys/key.private --export /spack_keys/key.public spack-test spacktest@ghex.org
       - name: import keys and add cache
