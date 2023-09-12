@@ -52,7 +52,9 @@ jobs:
             /spack_buildcache
             /spack_keys
           key: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}-${{ github.run_id }}
-          restore-keys: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}-
+          restore-keys: |
+            spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}-
+            spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}
       - name: install-spack
         shell: bash
         run: |
