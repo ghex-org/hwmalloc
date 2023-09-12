@@ -15,7 +15,6 @@ jobs:
       matrix:
         os: [ubuntu-22.04]
         python-version: ['3.10']
-        #spack-version: ['develop', 'latest_release']
         spack-version: ['v0.20.1']
     steps:
       - name: "Linux: update"
@@ -34,7 +33,6 @@ jobs:
           sudo mkdir -p /spack_keys
           sudo chown -R ${USER}:${USER} /spack_keys
           git clone https://github.com/ghex-org/spack-repos.git /repos
-      # figure out vector extensions for cache key
       - name: Check vector extensions
         run: |
           HAS_AVX512F=$([[ $(lscpu | grep "avx512f" | wc -l) -eq 1 ]] && echo "_avx512f" || echo "")
@@ -113,16 +111,15 @@ jobs:
           . /spack/share/spack/my-setup-env.sh
           cd hwmalloc
           spack dev-build --test=root hwmalloc@develop%clang
-          #spack dev-build hwmalloc@develop%clang
           spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop%clang
           spack buildcache update-index /spack_buildcache
-      #- name: build-cuda
-      #  run: |
-      #    . /spack/share/spack/my-setup-env.sh
-      #    cd hwmalloc
-      #    spack dev-build hwmalloc@develop +cuda
-      #    spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop +cuda
-      #    spack buildcache update-index /spack_buildcache
+      - name: build-cuda
+        run: |
+          . /spack/share/spack/my-setup-env.sh
+          cd hwmalloc
+          spack dev-build hwmalloc@develop +cuda
+          spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop +cuda
+          spack buildcache update-index /spack_buildcache
       #- name: build-and-test-develop
       #  run: |
       #    . /spack/share/spack/my-setup-env.sh
