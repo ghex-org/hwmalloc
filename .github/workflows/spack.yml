@@ -18,6 +18,12 @@ jobs:
         #spack-version: ['develop', 'latest_release']
         spack-version: ['v0.20.1']
     steps:
+      - name: print system info
+        shell: bash
+        run: |
+          echo "USER=${USER}"
+          _user="$(id -u -n)"
+          echo "user=${_user}"
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -43,10 +49,15 @@ jobs:
           git clone --depth 1 --branch ${{ matrix.spack-version }}  https://github.com/spack/spack.git /spack
           mkdir /spack/.cache
           mkdir /spack/.tmp
-          export SPACK_DISABLE_LOCAL_CONFIG=true
-          export SPACK_USER_CACHE_PATH=/spack/.cache
-          export TMP=/spack/.tmp
-          . /spack/share/spack/setup-env.sh
+          echo "config:" > /spack/etc/spack/config.yaml
+          echo "  install_tree:" >> /spack/etc/spack/config.yaml
+          echo "    padded_length: True" >> /spack/etc/spack/config.yaml
+          echo "#!/bin/bash" > /spack/share/spack/my-setup-env.sh
+          echo "export SPACK_DISABLE_LOCAL_CONFIG=true" >> /spack/share/spack/my-setup-env.sh
+          echo "export SPACK_USER_CACHE_PATH=/spack/.cache" >> /spack/share/spack/my-setup-env.sh
+          echo "export TMP=/spack/.tmp" >> /spack/share/spack/my-setup-env.sh
+          echo ". /spack/share/spack/setup-env.sh" >> /spack/share/spack/my-setup-env.sh
+          . /spack/share/spack/my-setup-env.sh
           #spack compiler find
           spack repo add /repos
       - if: ${{ steps.spack-buildcache.outputs.cache-hit != 'true' }}
@@ -55,28 +66,19 @@ jobs:
         run: |
           mkdir /spack_buildcache
           mkdir /spack_keys
-          export SPACK_DISABLE_LOCAL_CONFIG=true
-          export SPACK_USER_CACHE_PATH=/spack/.cache
-          export TMP=/spack/.tmp
-          . /spack/share/spack/setup-env.sh
+          . /spack/share/spack/my-setup-env.sh
           spack gpg create --export-secret /spack_keys/key.private --export /spack_keys/key.public spack-test spacktest@ghex.org
       - name: import keys and add cache
         shell: bash
         run: |
-          export SPACK_DISABLE_LOCAL_CONFIG=true
-          export SPACK_USER_CACHE_PATH=/spack/.cache
-          export TMP=/spack/.tmp
-          . /spack/share/spack/setup-env.sh
+          . /spack/share/spack/my-setup-env.sh
           spack gpg trust /spack_keys/key.private
           spack mirror add mirror /spack_buildcache
           spack buildcache update-index /spack_buildcache
       - name: build-and-test
         shell: bash
         run: |
-          export SPACK_DISABLE_LOCAL_CONFIG=true
-          export SPACK_USER_CACHE_PATH=/spack/.cache
-          export TMP=/spack/.tmp
-          . /spack/share/spack/setup-env.sh
+          . /spack/share/spack/my-setup-env.sh
           spack spec -I hwmalloc@master
           spack install --test=root hwmalloc@master
           spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@master
