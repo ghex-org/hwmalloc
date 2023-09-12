@@ -10,7 +10,7 @@ jobs:
   build-cpu:
     #runs-on: ubuntu-latest
     runs-on: ${{ matrix.os }}
-    container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi
+    #container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi
     strategy:
       matrix:
         os: [ubuntu-22.04]
@@ -24,6 +24,7 @@ jobs:
           echo "USER=${USER}"
           _user="$(id -u -n)"
           echo "user=${_user}"
+          echo ${{ github.run_id }}
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -31,6 +32,21 @@ jobs:
         run: |
           mkdir /repos
           git clone https://github.com/ghex-org/spack-repos.git /repos
+      # figure out vector extensions for cache key
+      - if: ${{ contains(matrix.config.os, 'macos') }}
+        name: Check vector extensions
+        # assume uniform hardware for macos
+        run: |
+          echo "VECTOR_EXTENSIONS=" >> $GITHUB_ENV
+      - if: ${{ contains(matrix.config.os, 'ubuntu') }}
+        name: Check vector extensions
+        run: |
+          HAS_AVX512F=$([[ $(lscpu | grep "avx512f" | wc -l) -eq 1 ]] && echo "_avx512f" || echo "")
+          HAS_AVX2=$([[ $(lscpu | grep "avx2" | wc -l) -eq 1 ]] && echo "_avx2" || echo "")
+          HAS_FMA=$([[ $(lscpu | grep "fma" | wc -l) -eq 1 ]] && echo "_fma" || echo "")
+          HAS_AVX=$([[ $(lscpu | grep "avx" | wc -l) -eq 1 ]] && echo "_avx" || echo "")
+          VECTOR_EXTENSIONS=${HAS_AVX512F}${HAS_AVX2}${HAS_FMA}${HAS_AVX}
+          echo "VECTOR_EXTENSIONS=$VECTOR_EXTENSIONS" >> $GITHUB_ENV
       - name: spack buildcache
         id: spack-buildcache
         uses: actions/cache@v3
@@ -40,7 +56,7 @@ jobs:
           path: |
             /spack_buildcache
             /spack_keys
-          key: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ github.run_id }}
+          key: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}
           restore-keys: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-
       - name: install-spack
         shell: bash
