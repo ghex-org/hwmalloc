@@ -110,8 +110,8 @@ jobs:
         run: |
           . /spack/share/spack/my-setup-env.sh
           cd hwmalloc
-          #spack dev-build --test=root hwmalloc@develop%clang
-          spack dev-build hwmalloc@develop%clang
+          spack dev-build --test=root hwmalloc@develop%clang
+          #spack dev-build hwmalloc@develop%clang
           spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop%clang
           spack buildcache update-index /spack_buildcache
       #- name: build-cuda
