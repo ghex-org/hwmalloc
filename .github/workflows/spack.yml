@@ -89,13 +89,13 @@ jobs:
           spack gpg trust /spack_keys/key.private
           spack mirror add mirror /spack_buildcache
           spack buildcache update-index /spack_buildcache
-      - name: build-and-test
-        shell: bash
-        run: |
-          . /spack/share/spack/my-setup-env.sh
-          spack spec -I hwmalloc@master
-          spack install --test=root hwmalloc@master
-          spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@master
+      #- name: build-and-test
+      #  shell: bash
+      #  run: |
+      #    . /spack/share/spack/my-setup-env.sh
+      #    spack spec -I hwmalloc@master
+      #    spack install --test=root hwmalloc@master
+      #    spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@master
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -110,9 +110,9 @@ jobs:
         run: |
           . /spack/share/spack/my-setup-env.sh
           cd hwmalloc
-          spack dev-build --test=root --until build hwmalloc@develop
-          spack build-env hwmalloc@develop --bash
-          make test
-          make install
-          exit
+          spack dev-build -v --test=root hwmalloc@develop
+          #spack build-env hwmalloc@develop --bash
+          #make test
+          #make install
+          #exit
           spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop
