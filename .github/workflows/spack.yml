@@ -44,8 +44,6 @@ jobs:
       - name: spack buildcache
         id: spack-buildcache
         uses: actions/cache@v3
-        #env:
-        #  cache-name: spack-buildcache_
         with:
           path: |
             /spack_buildcache
@@ -113,20 +111,3 @@ jobs:
           spack dev-build --test=root hwmalloc@develop%clang
           spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop%clang
           spack buildcache update-index /spack_buildcache
-      - name: build-cuda
-        run: |
-          . /spack/share/spack/my-setup-env.sh
-          cd hwmalloc
-          spack dev-build hwmalloc@develop +cuda
-          spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop +cuda
-          spack buildcache update-index /spack_buildcache
-      #- name: build-and-test-develop
-      #  run: |
-      #    . /spack/share/spack/my-setup-env.sh
-      #    cd hwmalloc
-      #    spack dev-build -v --test=root hwmalloc@develop
-      #    #spack build-env hwmalloc@develop --bash
-      #    #make test
-      #    #make install
-      #    #exit
-      #    spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop
