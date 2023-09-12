@@ -51,8 +51,8 @@ jobs:
           path: |
             /spack_buildcache
             /spack_keys
-          key: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}
-          restore-keys: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-
+          key: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}-${{ github.run_id }}
+          restore-keys: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}-
       - name: install-spack
         shell: bash
         run: |
@@ -76,12 +76,16 @@ jobs:
         name: create buildcache keys
         shell: bash
         run: |
-          sudo mkdir -p /spack_buildcache
-          sudo chown -R ${USER}:${USER} /spack_buildcache
-          sudo mkdir -p /spack_keys
-          sudo chown -R ${USER}:${USER} /spack_keys
-          . /spack/share/spack/my-setup-env.sh
-          spack gpg create --export-secret /spack_keys/key.private --export /spack_keys/key.public spack-test spacktest@ghex.org
+          if [ ! -f /spack_keys/key.private ]; then
+            sudo mkdir -p /spack_buildcache
+            sudo chown -R ${USER}:${USER} /spack_buildcache
+            sudo mkdir -p /spack_keys
+            sudo chown -R ${USER}:${USER} /spack_keys
+            . /spack/share/spack/my-setup-env.sh
+            spack gpg create --export-secret /spack_keys/key.private --export /spack_keys/key.public spack-test spacktest@ghex.org
+          else
+            echo "cache: partial hit"
+          fi
       - name: import keys and add cache
         shell: bash
         run: |
@@ -104,8 +108,8 @@ jobs:
         run: |
           . /spack/share/spack/my-setup-env.sh
           cd hwmalloc
-          spack dev-build --test=root hwmalloc@develop%clang
-          #spack dev-build hwmalloc@develop%clang
+          #spack dev-build --test=root hwmalloc@develop%clang
+          spack dev-build hwmalloc@develop%clang
           spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop%clang
           spack buildcache update-index /spack_buildcache
       #- name: build-cuda
