@@ -21,6 +21,7 @@ jobs:
       - name: "Linux: update"
         run: |
           sudo apt-get update
+          sudo apt-get install libomp-dev
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
@@ -55,6 +56,7 @@ jobs:
           restore-keys: |
             spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}-
             spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}
+            spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-
       - name: install-spack
         shell: bash
         run: |
