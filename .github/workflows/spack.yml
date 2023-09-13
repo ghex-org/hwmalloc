@@ -8,9 +8,7 @@ on:
 
 jobs:
   build-cpu:
-    #runs-on: ubuntu-latest
     runs-on: ${{ matrix.os }}
-    #container: ghcr.io/gridtools/gridtools-base:gcc-9-ucx-mpi
     strategy:
       matrix:
         os: [ubuntu-22.04]
