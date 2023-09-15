@@ -12,6 +12,7 @@
 #ifdef HWMALLOC_NUMA_AVAILABLE
 #include <numaif.h>
 #include <numa.h>
+#include <sys/sysinfo.h>
 #else
 #include <cassert>
 #endif
@@ -19,9 +20,6 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstdint>
-#if !defined(__APPLE__)
-#include <sys/sysinfo.h>
-#endif
 
 #ifdef HWMALLOC_NUMA_THROWS
 #include <stdexcept>

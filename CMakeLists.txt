@@ -40,8 +40,7 @@ if (HWMALLOC_NUMA_FOR_LOCAL)
     target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_FOR_LOCAL)
 endif()
 else()
-# numactl not available on MacOS
-message(WARNING "${CMAKE_PROJECT_NAME} configured without NUMA support on Apple platform")
+message(WARNING "${CMAKE_PROJECT_NAME} configured without NUMA support on Mac")
 endif()
 
 # ---------------------------------------------------------------------
