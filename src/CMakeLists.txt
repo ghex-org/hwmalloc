@@ -1,4 +1,4 @@
-if (NUMA)
+if (NUMA_LIBRARY)
     target_sources(hwmalloc PRIVATE numa.cpp)
 else()
     target_sources(hwmalloc PRIVATE numa_stub.cpp)
