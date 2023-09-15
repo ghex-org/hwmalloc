@@ -27,8 +27,10 @@ add_library(HWMALLOC::hwmalloc ALIAS hwmalloc)
 # ---------------------------------------------------------------------
 # NUMA setup
 # ---------------------------------------------------------------------
+if(UNIX AND NOT APPLE)
 find_package(NUMA REQUIRED)
 target_link_libraries(hwmalloc PRIVATE NUMA::libnuma)
+target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_AVAILABLE)
 set(HWMALLOC_NUMA_THROWS OFF CACHE BOOL "True if numa_tools may throw during initialization")
 if (HWMALLOC_NUMA_THROWS)
     target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_THROWS)
@@ -36,6 +38,10 @@ endif()
 set(HWMALLOC_NUMA_FOR_LOCAL ON CACHE BOOL "Use numa_tools for local node allocations")
 if (HWMALLOC_NUMA_FOR_LOCAL)
     target_compile_definitions(hwmalloc PRIVATE HWMALLOC_NUMA_FOR_LOCAL)
+endif()
+else()
+# numactl not available on MacOS
+message(WARNING "${CMAKE_PROJECT_NAME} configured without NUMA support on Apple platform")
 endif()
 
 # ---------------------------------------------------------------------
