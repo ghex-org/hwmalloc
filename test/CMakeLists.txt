@@ -1,4 +1,5 @@
 enable_testing()
+find_package(NUMA)
 
 include(FetchContent)
 FetchContent_Declare(
