@@ -1,5 +1,4 @@
 enable_testing()
-find_package(NUMA)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -26,7 +25,7 @@ function(reg_test t)
 endfunction()
 
 set(HWMALLOC_DISABLE_NUMA_TEST OFF CACHE BOOL "disable numa test (for docker images)")
-if (NUMA AND NOT HWMALLOC_DISABLE_NUMA_TEST)
+if (NUMA_LIBRARY AND NOT HWMALLOC_DISABLE_NUMA_TEST)
     reg_test(test_numa)
     if (HWMALLOC_NUMA_FOR_LOCAL)
         target_compile_definitions(test_numa PRIVATE HWMALLOC_NUMA_FOR_LOCAL)
@@ -35,7 +34,7 @@ endif()
 reg_test(test_ptr)
 reg_test(test_segment)
 
-if(NUMA)
+if (NUMA_LIBRARY)
 find_package(OpenMP REQUIRED)
 reg_test(test_omp)
 target_link_libraries(test_omp PRIVATE OpenMP::OpenMP_CXX)

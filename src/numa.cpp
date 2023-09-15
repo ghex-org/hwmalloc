@@ -9,17 +9,13 @@
  */
 #include <hwmalloc/numa.hpp>
 #include <hwmalloc/log.hpp>
-#ifdef HWMALLOC_NUMA_AVAILABLE
 #include <numaif.h>
 #include <numa.h>
-#include <sys/sysinfo.h>
-#else
-#include <cassert>
-#endif
 #include <unistd.h>
 #include <algorithm>
 #include <cstdlib>
 #include <cstdint>
+#include <sys/sysinfo.h>
 
 #ifdef HWMALLOC_NUMA_THROWS
 #include <stdexcept>
@@ -38,11 +34,7 @@ numa_tools::size_type numa_tools::page_size_ = sysconf(_SC_PAGESIZE);
 
 namespace
 {
-#ifdef HWMALLOC_NUMA_AVAILABLE
 bitmask* task_cpu_mask_ptr;
-#else
-int numa_available() { return 0; }
-#endif
 }
 
 // construct the single instance
@@ -52,26 +44,18 @@ numa_tools::numa_tools() HWMALLOC_NUMA_CONDITIONAL_NOEXCEPT
     if (numa_available() < 0) HWMALLOC_NUMA_ERROR("could not initialize libnuma");
     else
     {
-#ifdef HWMALLOC_NUMA_AVAILABLE
         task_cpu_mask_ptr = numa_allocate_cpumask();
         numa_sched_getaffinity(0, task_cpu_mask_ptr);
-#endif
         discover_nodes();
     }
 }
 
-numa_tools::~numa_tools() noexcept
-{
-#ifdef HWMALLOC_NUMA_AVAILABLE
-    numa_free_cpumask(task_cpu_mask_ptr);
-#endif
-}
+numa_tools::~numa_tools() noexcept { numa_free_cpumask(task_cpu_mask_ptr); }
 
 // detect host and device nodes
 void
 numa_tools::discover_nodes() noexcept
 {
-#ifdef HWMALLOC_NUMA_AVAILABLE
     std::vector<index_type> host_nodes_;
     std::vector<index_type> local_nodes_;
     std::vector<index_type> device_nodes_;
@@ -115,20 +99,14 @@ numa_tools::discover_nodes() noexcept
     m_host_nodes = node_map(std::move(host_nodes_));
     m_local_nodes = node_map(std::move(local_nodes_));
     m_device_nodes = node_map(std::move(device_nodes_));
-#else
-    m_local_nodes = node_map({0});
-#endif
+
     is_initialized_ = true;
 }
 
 numa_tools::index_type
 numa_tools::local_node() const noexcept
 {
-#ifdef HWMALLOC_NUMA_AVAILABLE
     return m_cpu_to_node[sched_getcpu()];
-#else
-    return static_cast<index_type>(0);
-#endif
 }
 
 bool
@@ -147,7 +125,6 @@ numa_tools::allocation
 numa_tools::allocate(size_type num_pages, index_type node) const noexcept
 {
     if (num_pages == 0u) return {};
-#ifdef HWMALLOC_NUMA_AVAILABLE
 #ifndef HWMALLOC_NUMA_FOR_LOCAL
     // bypass numa allocation if on local node
     if (node == local_node()) return allocate_malloc(num_pages);
@@ -160,10 +137,6 @@ numa_tools::allocate(size_type num_pages, index_type node) const noexcept
     HWMALLOC_LOG("allocating", num_pages * page_size_,
         "bytes using numa_alloc:", (std::uintptr_t)ptr);
     return {ptr, num_pages * page_size_, node};
-#else
-    (void)node;
-    return allocate_malloc(num_pages);
-#endif
 }
 
 numa_tools::allocation
@@ -181,7 +154,6 @@ numa_tools::index_type
 numa_tools::get_node(void* ptr) const noexcept
 {
     int node_id = 0;
-#ifdef HWMALLOC_NUMA_AVAILABLE
     get_mempolicy(&node_id, // mode: node id
         NULL,               // nodemask:  ignore
         0,                  // maxnode: ignore
@@ -189,9 +161,6 @@ numa_tools::get_node(void* ptr) const noexcept
         MPOL_F_ADDR         // return information about policy governing addr
             | MPOL_F_NODE   // return node id in mode
     );
-#else
-    (void)ptr;
-#endif
     return static_cast<index_type>(node_id);
 }
 
@@ -202,12 +171,8 @@ numa_tools::free(numa_tools::allocation const& a) const noexcept
     {
         if (a.use_numa_free)
         {
-#ifdef HWMALLOC_NUMA_AVAILABLE
             HWMALLOC_LOG("freeing   ", a.size, "bytes using numa_free:", (std::uintptr_t)a.ptr);
             numa_free(a.ptr, a.size);
-#else
-            assert(0);
-#endif
         }
         else
         {
