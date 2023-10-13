@@ -49,7 +49,7 @@ device_malloc(std::size_t size)
     void* ptr;
     HWMALLOC_CHECK_HIP_RESULT(hipMalloc(&ptr, size));
     HWMALLOC_LOG("allocating", size, "bytes using hipMalloc on device", get_device_id(), ":",
-        (std::uintptr_t)a.ptr);
+        (std::uintptr_t)ptr);
     return ptr;
 }
 
