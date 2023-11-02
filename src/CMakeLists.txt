@@ -1,4 +1,8 @@
-target_sources(hwmalloc PRIVATE numa.cpp)
+if (NUMA_LIBRARY)
+    target_sources(hwmalloc PRIVATE numa.cpp)
+else()
+    target_sources(hwmalloc PRIVATE numa_stub.cpp)
+endif()
 
 if (HWMALLOC_ENABLE_LOGGING)
     target_sources(hwmalloc PRIVATE log.cpp)
