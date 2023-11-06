@@ -7,15 +7,15 @@ on:
       - master
 
 jobs:
-  build-cpu:
+  test-spack:
     runs-on: ubuntu-latest
     container: boeschf/ghex-org
     steps:
       - name: install-ghex-org-packages
         run: |
           mkdir /repos
-          #chown -R ${USER}:${USER} /repos
           git clone https://github.com/ghex-org/spack-repos.git /repos
+          . /opt/spack/share/spack/setup-env-clean.sh
           spack repo add /repos
       - name: Checkout
         uses: actions/checkout@v3
@@ -24,4 +24,5 @@ jobs:
       - name: build-and-test
         run: |
           cd hwmalloc
+          . /opt/spack/share/spack/setup-env-clean.sh
           spack dev-build --test=root hwmalloc@develop
