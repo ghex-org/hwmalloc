@@ -16,7 +16,6 @@ jobs:
           mkdir /repos
           git clone https://github.com/ghex-org/spack-repos.git /repos
           . /opt/spack/share/spack/setup-env-clean.sh
-          spack find
           spack repo add /repos
       - name: Checkout
         uses: actions/checkout@v3
@@ -26,4 +25,4 @@ jobs:
         run: |
           cd hwmalloc
           . /opt/spack/share/spack/setup-env-clean.sh
-          spack dev-build --test=root hwmalloc@develop
+          spack dev-build --test=root --reuse hwmalloc@develop
