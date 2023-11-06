@@ -27,7 +27,6 @@ jobs:
         run: |
           cd hwmalloc
           . /opt/spack/share/spack/setup-env-clean.sh
-          spack env activate dev
           spack spec -I --reuse hwmalloc
           spack dev-build --test=root --reuse hwmalloc@develop
           cat install-time-test-log.txt
