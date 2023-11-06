@@ -13,8 +13,8 @@ jobs:
     steps:
       - name: install-ghex-org-packages
         run: |
-          sudo mkdir /repos
-          sudo chown -R ${USER}:${USER} /repos
+          mkdir /repos
+          #chown -R ${USER}:${USER} /repos
           git clone https://github.com/ghex-org/spack-repos.git /repos
           spack repo add /repos
       - name: Checkout
