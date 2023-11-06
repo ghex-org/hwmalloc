@@ -12,16 +12,19 @@ jobs:
     container: boeschf/ghex-org
     steps:
       - name: install-ghex-org-packages
+        shell: bash
         run: |
           mkdir /repos
           git clone https://github.com/ghex-org/spack-repos.git /repos
           . /opt/spack/share/spack/setup-env-clean.sh
+          spack buildcache list
           spack repo add /repos
       - name: Checkout
         uses: actions/checkout@v3
         with:
           path: hwmalloc
       - name: build-and-test
+        shell: bash
         run: |
           cd hwmalloc
           . /opt/spack/share/spack/setup-env-clean.sh
