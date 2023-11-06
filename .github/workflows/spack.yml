@@ -8,104 +8,20 @@ on:
 
 jobs:
   build-cpu:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.10']
-        spack-version: ['v0.20.3']
+    runs-on: ubuntu-23.10
+    container: boeschf/ghex-org
     steps:
-      - name: "Linux: update"
-        run: |
-          sudo apt-get update
-          sudo apt-get install libomp-dev
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: install-ghex-org-packages
         run: |
           sudo mkdir /repos
           sudo chown -R ${USER}:${USER} /repos
-          sudo mkdir -p /spack_buildcache
-          sudo chown -R ${USER}:${USER} /spack_buildcache
-          sudo mkdir -p /spack_keys
-          sudo chown -R ${USER}:${USER} /spack_keys
           git clone https://github.com/ghex-org/spack-repos.git /repos
-      - name: Check vector extensions
-        run: |
-          HAS_AVX512F=$([[ $(lscpu | grep "avx512f" | wc -l) -eq 1 ]] && echo "_avx512f" || echo "")
-          HAS_AVX2=$([[ $(lscpu | grep "avx2" | wc -l) -eq 1 ]] && echo "_avx2" || echo "")
-          HAS_FMA=$([[ $(lscpu | grep "fma" | wc -l) -eq 1 ]] && echo "_fma" || echo "")
-          HAS_AVX=$([[ $(lscpu | grep "avx" | wc -l) -eq 1 ]] && echo "_avx" || echo "")
-          VECTOR_EXTENSIONS=${HAS_AVX512F}${HAS_AVX2}${HAS_FMA}${HAS_AVX}
-          echo "VECTOR_EXTENSIONS=$VECTOR_EXTENSIONS" >> $GITHUB_ENV
-      - name: spack buildcache
-        id: spack-buildcache
-        uses: actions/cache@v3
-        with:
-          path: |
-            /spack_buildcache
-            /spack_keys
-          key: spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}-${{ github.run_id }}
-          restore-keys: |
-            spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}-
-            spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-${{ env.VECTOR_EXTENSIONS }}
-            spack-cache-${{ matrix.os }}-${{ matrix.spack-version }}-
-      - name: install-spack
-        shell: bash
-        run: |
-          sudo mkdir /spack
-          sudo chown -R ${USER}:${USER} /spack
-          git clone --depth 1 --branch ${{ matrix.spack-version }}  https://github.com/spack/spack.git /spack
-          mkdir /spack/.cache
-          mkdir /spack/.tmp
-          echo "config:" > /spack/etc/spack/config.yaml
-          echo "  install_tree:" >> /spack/etc/spack/config.yaml
-          echo "    padded_length: True" >> /spack/etc/spack/config.yaml
-          echo "#!/bin/bash" > /spack/share/spack/my-setup-env.sh
-          echo "export SPACK_DISABLE_LOCAL_CONFIG=true" >> /spack/share/spack/my-setup-env.sh
-          echo "export SPACK_USER_CACHE_PATH=/spack/.cache" >> /spack/share/spack/my-setup-env.sh
-          echo "export TMP=/spack/.tmp" >> /spack/share/spack/my-setup-env.sh
-          echo ". /spack/share/spack/setup-env.sh" >> /spack/share/spack/my-setup-env.sh
-          . /spack/share/spack/my-setup-env.sh
-          spack compiler find
           spack repo add /repos
-      - if: ${{ steps.spack-buildcache.outputs.cache-hit != 'true' }}
-        name: create buildcache keys
-        shell: bash
-        run: |
-          if [ ! -f /spack_keys/key.private ]; then
-            sudo mkdir -p /spack_buildcache
-            sudo chown -R ${USER}:${USER} /spack_buildcache
-            sudo mkdir -p /spack_keys
-            sudo chown -R ${USER}:${USER} /spack_keys
-            . /spack/share/spack/my-setup-env.sh
-            spack gpg create --export-secret /spack_keys/key.private --export /spack_keys/key.public spack-test spacktest@ghex.org
-          else
-            echo "cache: partial hit"
-          fi
-      - name: import keys and add cache
-        shell: bash
-        run: |
-          . /spack/share/spack/my-setup-env.sh
-          spack gpg trust /spack_keys/key.private
-          spack mirror add mirror /spack_buildcache
-          spack buildcache update-index /spack_buildcache
       - name: Checkout
         uses: actions/checkout@v3
         with:
           path: hwmalloc
-      - name: build-and-test-cpu-gcc
+      - name: build-and-test
         run: |
-          . /spack/share/spack/my-setup-env.sh
           cd hwmalloc
           spack dev-build --test=root hwmalloc@develop
-          spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop
-          spack buildcache update-index /spack_buildcache
-      - name: build-and-test-cpu-clang
-        run: |
-          . /spack/share/spack/my-setup-env.sh
-          cd hwmalloc
-          spack dev-build --test=root hwmalloc@develop%clang
-          spack buildcache push --only dependencies -a -k spack-test /spack_buildcache hwmalloc@develop%clang
-          spack buildcache update-index /spack_buildcache
