@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-cpu:
-    runs-on: ubuntu-23.10
+    runs-on: ubuntu-latest
     container: boeschf/ghex-org
     steps:
       - name: install-ghex-org-packages
