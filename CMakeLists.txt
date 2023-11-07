@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 # CMake version is set at 3.17 because of find_package(CUDAToolkit)
 # TODO: find a workaround to be able to lower the version requirement
-project(hwmalloc VERSION 0.2.0 LANGUAGES CXX)
+project(hwmalloc VERSION 0.3.0 LANGUAGES CXX)
 
 # ---------------------------------------------------------------------
 # CMake setup, C++ version, build type, modules, etc
