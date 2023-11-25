@@ -84,7 +84,7 @@ class segment
         char* origin = (char*)m_allocation.m.ptr;
         for (std::size_t i = m_num_blocks; i > 0; --i)
         {
-            block b{this, nullptr, origin + (i - 1) * block_size,
+            block b{this, origin + (i - 1) * block_size, nullptr, false,
                 m_region.get_handle((i - 1) * block_size, block_size)};
             while (!free_stack.push(b)) {}
         }
@@ -109,7 +109,7 @@ class segment
         char* device_origin = (char*)m_device_allocation.m;
         for (std::size_t i = m_num_blocks; i > 0; --i)
         {
-            block b{this, nullptr, origin + (i - 1) * block_size,
+            block b{this, origin + (i - 1) * block_size, nullptr, false,
                 m_region.get_handle((i - 1) * block_size, block_size),
                 device_origin + (i - 1) * block_size,
                 m_device_region->get_handle((i - 1) * block_size, block_size), device_id};
