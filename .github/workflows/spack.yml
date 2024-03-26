@@ -76,4 +76,4 @@ jobs:
           spack load googletest
           # need `--dirty` here for environment variables and googletest test dependency to propagate
           cd hwmalloc
-          spack dev-build --dirty --reuse hwmalloc@develop
+          spack dev-build --test=root --dirty --reuse hwmalloc@develop
