@@ -8,25 +8,79 @@ on:
 
 jobs:
   test-spack:
-    runs-on: ubuntu-latest
-    container: boeschf/ghex-org
-    steps:
-      - name: install-ghex-org-packages
+    runs-on: ubuntu-${{ matrix.ubuntu-version }}
+
+    defaults:
+      run:
         shell: bash
+
+    strategy:
+      matrix:
+        ubuntu-version: ['22.04']
+        spack-version: ['develop']
+        micro-arch: ['x86_64_v3']
+
+      fail-fast: false
+
+    env:
+      SPACK_DISABLE_LOCAL_CONFIG:     "true"
+      SPACK_USER_CACHE_PATH:          "/tmp/spack"
+
+    steps:
+
+      - name: install additional ubuntu packages
         run: |
-          mkdir /repos
-          git clone https://github.com/ghex-org/spack-repos.git /repos
-          . /opt/spack/share/spack/setup-env-clean.sh
-          spack repo add /repos
-      - name: Checkout
-        uses: actions/checkout@v3
+          sudo apt-get update -qq
+          sudo apt-get install -y gfortran
+
+      - name: checkout
+        uses: actions/checkout@v4
         with:
           path: hwmalloc
-      - name: build-and-test
-        shell: bash
+
+      - name: clone ghex spack repo
+        run: git clone --depth=1 https://github.com/ghex-org/spack-repos.git repos
+
+      - name: clone spack
+        run: git clone -c feature.manyFiles=true --depth 1 --branch ${{ matrix.spack-version }} https://github.com/spack/spack.git spack
+
+      - name: initialize spack and add online buildcache
         run: |
-          cd hwmalloc
-          . /opt/spack/share/spack/setup-env-clean.sh
-          spack spec -I --reuse hwmalloc
-          spack dev-build --test=root --reuse hwmalloc@develop
-          cat install-time-test-log.txt
+          cat <<EOF > spack/etc/spack/config.yaml
+          config:
+            install_tree:
+              padded_length: 128
+            build_jobs: 4
+          EOF
+
+          cat <<EOF > spack/etc/spack/packages.yaml
+          packages:
+            all:
+              require:
+              - 'target=${{ matrix.micro-arch }}'
+              - '%gcc'
+          EOF
+
+          source spack/share/spack/setup-env.sh
+          spack compiler find
+          spack mirror add --unsigned local-buildcache oci://ghcr.io/boeschf/spack-buildcache
+          spack repo add repos
+          spack reindex
+
+      - name: build-and-test
+        run: |
+          source spack/share/spack/setup-env.sh
+          # print dependencies
+          spack spec -I --reuse hwmalloc@develop
+          # dev-build does not respect test dependencies - workaround
+          spack install --reuse googletest
+          spack load googletest
+          # need `--dirty` here for environment variables and googletest test dependency to propagate
+          spack dev-build --test=root --dirty --reuse --source-path hwmalloc hwmalloc@develop
+
+      - name: Push packages and update index
+        continue-on-error: true
+        run: |
+          source spack/share/spack/setup-env.sh
+          spack mirror set --push --oci-username ${{ github.actor }} --oci-password "${{ secrets.GITHUB_TOKEN }}" local-buildcache
+          spack buildcache push --base-image ubuntu:${{ matrix.ubuntu-version }} --unsigned --update-index --only dependencies local-buildcache hwmalloc@develop
