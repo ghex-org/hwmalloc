@@ -76,3 +76,9 @@ jobs:
           spack load googletest
           # need `--dirty` here for environment variables and googletest test dependency to propagate
           spack dev-build --test=root --dirty --reuse --source-path hwmalloc hwmalloc@develop
+
+      - name: Push packages and update index
+        run: |
+          source spack/share/spack/setup-env.sh
+          spack mirror set --push --oci-username ${{ github.actor }} --oci-password "${{ secrets.GITHUB_TOKEN }}" local-buildcache
+          spack buildcache push --base-image ubuntu:22.04 --unsigned --update-index --only dependencies local-buildcache hwmalloc@develop
