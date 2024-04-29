@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-spack:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-${{ matrix.ubuntu-version }}
 
     defaults:
       run:
@@ -16,6 +16,7 @@ jobs:
 
     strategy:
       matrix:
+        ubuntu-version: ['22.04']
         spack-version: ['develop']
         micro-arch: ['x86_64_v3']
 
@@ -78,7 +79,8 @@ jobs:
           spack dev-build --test=root --dirty --reuse --source-path hwmalloc hwmalloc@develop
 
       - name: Push packages and update index
+        continue-on-error: true
         run: |
           source spack/share/spack/setup-env.sh
           spack mirror set --push --oci-username ${{ github.actor }} --oci-password "${{ secrets.GITHUB_TOKEN }}" local-buildcache
-          spack buildcache push --base-image ubuntu:22.04 --unsigned --update-index --only dependencies local-buildcache hwmalloc@develop
+          spack buildcache push --base-image ubuntu:${{ matrix.ubuntu-version }} --unsigned --update-index --only dependencies local-buildcache hwmalloc@develop
