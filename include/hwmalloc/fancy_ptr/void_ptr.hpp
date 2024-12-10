@@ -77,7 +77,8 @@ class hw_void_ptr
 #if HWMALLOC_ENABLE_DEVICE
     constexpr VoidPtr device_ptr() const noexcept { return m_data.m_device_ptr; }
 
-    auto device_handle() const noexcept { return m_data.m_device_handle; }
+    auto  device_handle() const noexcept { return m_data.m_device_handle; }
+    auto& device_handle() noexcept { return m_data.m_device_handle; }
 
     int device_id() const noexcept { return m_data.m_device_id; }
 #endif
