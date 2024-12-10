@@ -3,6 +3,20 @@ cmake_minimum_required(VERSION 3.17)
 # TODO: find a workaround to be able to lower the version requirement
 project(hwmalloc VERSION 0.3.0 LANGUAGES CXX)
 
+# ------------------------------------------------------------------------------
+# Policies
+# ------------------------------------------------------------------------------
+function(set_policy POLICY_NAME POLICY_VALUE)
+  if(POLICY ${POLICY_NAME})
+    cmake_policy(SET ${POLICY_NAME} ${POLICY_VALUE})
+  endif()
+endfunction()
+
+set_policy(CMP0028 NEW) # Double colon in target name means ALIAS or IMPORTED target
+set_policy(CMP0060 NEW) # Link libraries by full path even in implicit directories
+set_policy(CMP0074 NEW) # find_package uses XXX_ROOT vars using PackageName
+set_policy(CMP0144 NEW) # find_package allows XXX_ROOT vars using PACKAGENAME Uppercase
+
 # ---------------------------------------------------------------------
 # CMake setup, C++ version, build type, modules, etc
 # ---------------------------------------------------------------------
