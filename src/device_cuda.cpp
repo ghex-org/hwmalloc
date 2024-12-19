@@ -78,6 +78,7 @@ memcpy_to_device(void* dst, void const* src, std::size_t count)
     HWMALLOC_CHECK_CUDA_RESULT(cudaEventRecord(done, stream));
     HWMALLOC_CHECK_CUDA_RESULT(cudaEventSynchronize(done));
     HWMALLOC_CHECK_CUDA_RESULT(cudaEventDestroy(done));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaStreamDestroy(stream));
 }
 
 void
@@ -92,6 +93,7 @@ memcpy_to_host(void* dst, void const* src, std::size_t count)
     HWMALLOC_CHECK_CUDA_RESULT(cudaEventRecord(done, stream));
     HWMALLOC_CHECK_CUDA_RESULT(cudaEventSynchronize(done));
     HWMALLOC_CHECK_CUDA_RESULT(cudaEventDestroy(done));
+    HWMALLOC_CHECK_CUDA_RESULT(cudaStreamDestroy(stream));
 }
 
 } // namespace hwmalloc
