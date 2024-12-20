@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstdint>
+#include <iomanip>
 #include <sys/sysinfo.h>
 
 #ifdef HWMALLOC_NUMA_THROWS
@@ -134,8 +135,12 @@ numa_tools::allocate(size_type num_pages, index_type node) const noexcept
     auto ptr = numa_alloc_onnode(num_pages * page_size_, node);
     // fall back to malloc
     if (!ptr) return allocate_malloc(num_pages);
-    HWMALLOC_LOG("allocating", num_pages * page_size_,
-        "bytes using numa_alloc:", (std::uintptr_t)ptr);
+#ifdef HWMALLOC_ENABLE_LOGGING
+    std::stringstream tmp;
+    tmp << std::right << "0x" << std::setfill('0') << std::setw(12) << std::noshowbase << std::hex
+        << reinterpret_cast<uintptr_t>(ptr);
+    HWMALLOC_LOG("allocating", num_pages * page_size_, "bytes using numa_alloc:", tmp.str());
+#endif
     return {ptr, num_pages * page_size_, node};
 }
 

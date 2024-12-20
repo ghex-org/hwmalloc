@@ -70,9 +70,7 @@ class hw_void_ptr
 
     constexpr VoidPtr get() const noexcept { return m_data.m_ptr; }
 
-    auto        handle() const noexcept { return m_data.m_handle; }
-    const auto& handle_ref() const noexcept { return m_data.m_handle; }
-    auto&       handle_ref() noexcept { return m_data.m_handle; }
+    auto handle() const noexcept { return m_data.m_handle; }
 
 #if HWMALLOC_ENABLE_DEVICE
     constexpr VoidPtr device_ptr() const noexcept { return m_data.m_device_ptr; }
