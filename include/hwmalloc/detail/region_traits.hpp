@@ -13,7 +13,7 @@
 #include <hwmalloc/register.hpp>
 #if HWMALLOC_ENABLE_DEVICE
 #include <hwmalloc/register_device.hpp>
-#pragma message "Device is enabled"
+//#pragma message "Device is enabled"
 #endif
 
 namespace hwmalloc
