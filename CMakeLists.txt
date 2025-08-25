@@ -18,6 +18,22 @@ set_policy(CMP0074 NEW) # find_package uses XXX_ROOT vars using PackageName
 set_policy(CMP0144 NEW) # find_package allows XXX_ROOT vars using PACKAGENAME Uppercase
 
 # ---------------------------------------------------------------------
+# Policies
+# ---------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Policies
+# ------------------------------------------------------------------------------
+function(set_policy POLICY_NAME POLICY_VALUE)
+  if(POLICY ${POLICY_NAME})
+    cmake_policy(SET ${POLICY_NAME} ${POLICY_VALUE})
+  endif()
+endfunction()
+
+set_policy(CMP0074 NEW) # find_package uses XXX_ROOT vars using PackageName
+set_policy(CMP0144 NEW) # find_package allows XXX_ROOT vars using PACKAGENAME Uppercase
+set_policy(CMP0167 NEW) # find_package uses new boost config (boost 1.70 onwards)
+
+# ---------------------------------------------------------------------
 # CMake setup, C++ version, build type, modules, etc
 # ---------------------------------------------------------------------
 set(CMAKE_CXX_STANDARD 17)
