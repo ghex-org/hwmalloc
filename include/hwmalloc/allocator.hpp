@@ -102,12 +102,12 @@ class allocator
 
     friend bool operator==(const allocator& lhs, const allocator& rhs) noexcept
     {
-        return (lhs.m_heap == rhs.m_heap) && (lhs.m_numa_node == rhs.numa_node);
+        return (lhs.m_heap == rhs.m_heap) && (lhs.m_numa_node == rhs.m_numa_node);
     }
 
     friend bool operator!=(const allocator& lhs, const allocator& rhs) noexcept
     {
-        return (lhs.m_heap != rhs.m_heap) || (lhs.m_numa_node != rhs.numa_node);
+        return (lhs.m_heap != rhs.m_heap) || (lhs.m_numa_node != rhs.m_numa_node);
     }
 
     friend void swap(allocator& lhs, allocator& rhs) noexcept
