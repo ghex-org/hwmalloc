@@ -14,6 +14,7 @@
 #include <hwmalloc/fancy_ptr/void_ptr.hpp>
 #include <hwmalloc/fancy_ptr/const_void_ptr.hpp>
 #include <hwmalloc/fancy_ptr/unique_ptr.hpp>
+#include <hwmalloc/heap_config.hpp>
 #include <hwmalloc/allocator.hpp>
 #include <vector>
 #include <unordered_map>
@@ -56,6 +57,9 @@ class heap
     template<typename T>
     using unique_ptr = unique_ptr<T, block_type>;
 
+    // Note: sizes below are defaults and can be changed through heap_config and
+    // environment variables.
+    //
     // There are 5 size classes that the heap uses. For each size class it relies on a
     // fixed_size_heap. The size classes are:
     // - tiny:  heaps with linearly increasing block sizes, each heap backed by 16KiB segments
@@ -98,44 +102,19 @@ class heap
     //    :                                                                :  m_huge_heaps: map
 
   private:
-    static constexpr std::size_t log2_c(std::size_t n) noexcept
+    static std::size_t tiny_bucket_index(std::size_t n, std::size_t tiny_increment,
+        std::size_t tiny_increment_shift) noexcept
     {
-        return ((n < 2) ? 1 : 1 + log2_c(n >> 1));
+        return ((n + tiny_increment - 1) >> tiny_increment_shift) - 1;
     }
 
-    static const std::size_t s_tiny_limit = (1u << 7);   //   128
-    static const std::size_t s_small_limit = (1u << 10); //  1024
-    static const std::size_t s_large_limit = (1u << 16); // 65536
-
-    static const std::size_t s_bucket_shift = log2_c(s_tiny_limit) - 1;
-
-    static const std::size_t s_tiny_segment = 0x04000;  // 16KiB
-    static const std::size_t s_small_segment = 0x08000; // 32KiB
-    static const std::size_t s_large_segment = 0x10000; // 64KiB
-
-    static const std::size_t s_tiny_increment_shift = 3;
-    static const std::size_t s_tiny_increment = (1u << s_tiny_increment_shift); // = 8
-
-    static const std::size_t s_num_tiny_heaps = s_tiny_limit / s_tiny_increment;
-    static const std::size_t s_num_small_heaps = log2_c(s_small_limit) - log2_c(s_tiny_limit);
-    static const std::size_t s_num_large_heaps = log2_c(s_large_limit) - log2_c(s_small_limit);
-
-    static std::size_t tiny_bucket_index(std::size_t n) noexcept
+    static std::size_t bucket_index(std::size_t n, std::size_t bucket_shift) noexcept
     {
-        return ((n + s_tiny_increment - 1) >> s_tiny_increment_shift) - 1;
-    }
-
-    static std::size_t bucket_index(std::size_t n) noexcept
-    {
-        return log2_c((n - 1) >> s_bucket_shift) - 1;
-    }
-
-    static constexpr std::size_t round_to_pow_of_2(std::size_t n) noexcept
-    {
-        return 1u << log2_c(n - 1);
+        return detail::log2_c((n - 1) >> bucket_shift) - 1;
     }
 
   private:
+    heap_config m_config;
     Context*    m_context;
     std::size_t m_max_size;
     bool        m_never_free;
@@ -146,30 +125,39 @@ class heap
     std::mutex  m_mutex;
 
   public:
-    heap(Context* context, bool never_free = false, std::size_t num_reserve_segments = 1)
-    : m_context{context}
-    , m_max_size(std::max(round_to_pow_of_2(s_large_limit * 2), s_large_limit))
+    // TODO: never_free and num_reserve_segments in heap_config?
+    heap(Context* context, bool never_free = false, std::size_t num_reserve_segments = 1,
+        heap_config config = get_default_heap_config())
+    : m_config{config}
+    , m_context{context}
+    , m_max_size(
+          std::max(detail::round_to_pow_of_2(m_config.m_large_limit * 2), m_config.m_large_limit))
     , m_never_free{never_free}
     , m_num_reserve_segments{num_reserve_segments}
-    , m_tiny_heaps(s_tiny_limit / s_tiny_increment)
-    , m_heaps(bucket_index(m_max_size) + 1)
+    , m_tiny_heaps(m_config.m_tiny_limit / m_config.m_tiny_increment)
+    , m_heaps(bucket_index(m_max_size, m_config.m_bucket_shift) + 1)
     {
         for (std::size_t i = 0; i < m_tiny_heaps.size(); ++i)
             m_tiny_heaps[i] = std::make_unique<fixed_size_heap_type>(m_context,
-                s_tiny_increment * (i + 1), s_tiny_segment, m_never_free, m_num_reserve_segments);
+                m_config.m_tiny_increment * (i + 1), m_config.m_tiny_segment_size, m_never_free,
+                m_num_reserve_segments);
 
-        for (std::size_t i = 0; i < s_num_small_heaps; ++i)
+        for (std::size_t i = 0; i < m_config.m_num_small_heaps; ++i)
             m_heaps[i] = std::make_unique<fixed_size_heap_type>(m_context,
-                (s_tiny_limit << (i + 1)), s_small_segment, m_never_free, m_num_reserve_segments);
+                (m_config.m_tiny_limit << (i + 1)), m_config.m_small_segment_size, m_never_free,
+                m_num_reserve_segments);
 
-        for (std::size_t i = 0; i < s_num_large_heaps; ++i)
-            m_heaps[i + s_num_small_heaps] = std::make_unique<fixed_size_heap_type>(m_context,
-                (s_small_limit << (i + 1)), s_large_segment, m_never_free, m_num_reserve_segments);
+        for (std::size_t i = 0; i < m_config.m_num_large_heaps; ++i)
+            m_heaps[i + m_config.m_num_small_heaps] = std::make_unique<fixed_size_heap_type>(
+                m_context, (m_config.m_small_limit << (i + 1)), m_config.m_large_segment_size,
+                m_never_free, m_num_reserve_segments);
 
-        for (std::size_t i = 0; i < m_heaps.size() - (s_num_small_heaps + s_num_large_heaps); ++i)
-            m_heaps[i + s_num_small_heaps + s_num_large_heaps] =
-                std::make_unique<fixed_size_heap_type>(m_context, (s_large_limit << (i + 1)),
-                    (s_large_limit << (i + 1)), m_never_free, m_num_reserve_segments);
+        for (std::size_t i = 0;
+             i < m_heaps.size() - (m_config.m_num_small_heaps + m_config.m_num_large_heaps); ++i)
+            m_heaps[i + m_config.m_num_small_heaps + m_config.m_num_large_heaps] =
+                std::make_unique<fixed_size_heap_type>(m_context,
+                    (m_config.m_large_limit << (i + 1)), (m_config.m_large_limit << (i + 1)),
+                    m_never_free, m_num_reserve_segments);
     }
 
     heap(heap const&) = delete;
@@ -194,16 +182,18 @@ class heap
 
     pointer allocate(std::size_t size, std::size_t numa_node)
     {
-        if (size <= s_tiny_limit)
-            return {m_tiny_heaps[tiny_bucket_index(size)]->allocate(numa_node)};
+        if (size <= m_config.m_tiny_limit)
+            return {m_tiny_heaps[tiny_bucket_index(size, m_config.m_tiny_increment,
+                                     m_config.m_tiny_increment_shift)]
+                        ->allocate(numa_node)};
         else if (size <= m_max_size)
-            return {m_heaps[bucket_index(size)]->allocate(numa_node)};
+            return {m_heaps[bucket_index(size, m_config.m_bucket_shift)]->allocate(numa_node)};
         else
         {
             fixed_size_heap_type* h;
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
-                const auto                  s = round_to_pow_of_2(size);
+                const auto                  s = detail::round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
                 if (!u_ptr)
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free,
@@ -223,16 +213,19 @@ class heap
 #if HWMALLOC_ENABLE_DEVICE
     pointer allocate(std::size_t size, std::size_t numa_node, int device_id)
     {
-        if (size <= s_tiny_limit)
-            return {m_tiny_heaps[tiny_bucket_index(size)]->allocate(numa_node, device_id)};
+        if (size <= m_config.m_tiny_limit)
+            return {m_tiny_heaps[tiny_bucket_index(size, m_config.m_tiny_increment,
+                                     m_config.m_tiny_increment_shift)]
+                        ->allocate(numa_node, device_id)};
         else if (size <= m_max_size)
-            return {m_heaps[bucket_index(size)]->allocate(numa_node, device_id)};
+            return {m_heaps[bucket_index(size, m_config.m_bucket_shift)]->allocate(numa_node,
+                device_id)};
         else
         {
             fixed_size_heap_type* h;
             {
                 std::lock_guard<std::mutex> lock(m_mutex);
-                const auto                  s = round_to_pow_of_2(size);
+                const auto                  s = detail::round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
                 if (!u_ptr)
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free,
@@ -292,30 +285,5 @@ class heap
             heap_delete<T, block_type>{size});
     }
 };
-
-template<typename Context>
-const std::size_t heap<Context>::s_tiny_limit;
-template<typename Context>
-const std::size_t heap<Context>::s_small_limit;
-template<typename Context>
-const std::size_t heap<Context>::s_large_limit;
-template<typename Context>
-const std::size_t heap<Context>::s_bucket_shift;
-template<typename Context>
-const std::size_t heap<Context>::s_tiny_segment;
-template<typename Context>
-const std::size_t heap<Context>::s_small_segment;
-template<typename Context>
-const std::size_t heap<Context>::s_large_segment;
-template<typename Context>
-const std::size_t heap<Context>::s_tiny_increment_shift;
-template<typename Context>
-const std::size_t heap<Context>::s_tiny_increment;
-template<typename Context>
-const std::size_t heap<Context>::s_num_tiny_heaps;
-template<typename Context>
-const std::size_t heap<Context>::s_num_small_heaps;
-template<typename Context>
-const std::size_t heap<Context>::s_num_large_heaps;
 
 } // namespace hwmalloc

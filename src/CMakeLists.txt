@@ -1,3 +1,5 @@
+target_sources(hwmalloc PRIVATE heap_config.cpp)
+
 if (NUMA_LIBRARY)
     target_sources(hwmalloc PRIVATE numa.cpp)
 else()
