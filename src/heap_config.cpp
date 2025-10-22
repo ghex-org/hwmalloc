@@ -88,13 +88,14 @@ heap_config::heap_config(std::size_t tiny_limit, std::size_t small_limit, std::s
 heap_config const&
 get_default_heap_config()
 {
-    // TODO: Add comment for sizes
-    static heap_config config{detail::get_env_size_t("HWMALLOC_TINY_LIMIT", (1u << 7)),
-        detail::get_env_size_t("HWMALLOC_SMALL_LIMIT", (1u << 10)),
-        detail::get_env_size_t("HWMALLOC_LARGE_LIMIT", (1u << 16)),
-        detail::get_env_size_t("HWMALLOC_TINY_SEGMENT_SIZE", 0x04000),
-        detail::get_env_size_t("HWMALLOC_SMALL_SEGMENT_SIZE", 0x08000),
-        detail::get_env_size_t("HWMALLOC_LARGE_SEGMENT_SIZE", 0x10000)
+    static heap_config config{
+        // TODO: Increase limits and sizes
+        detail::get_env_size_t("HWMALLOC_TINY_LIMIT", (1u << 7)),          // 128B
+        detail::get_env_size_t("HWMALLOC_SMALL_LIMIT", (1u << 10)),        // 1KiB
+        detail::get_env_size_t("HWMALLOC_LARGE_LIMIT", (1u << 16)),        // 64KiB
+        detail::get_env_size_t("HWMALLOC_TINY_SEGMENT_SIZE", (1u << 14)),  // 16KiB
+        detail::get_env_size_t("HWMALLOC_SMALL_SEGMENT_SIZE", (1u << 15)), // 32KiB
+        detail::get_env_size_t("HWMALLOC_LARGE_SEGMENT_SIZE", (1u << 16))  // 64KiB
 
     };
 
