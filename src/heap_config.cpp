@@ -13,6 +13,8 @@
 
 #ifdef HWMALLOC_ENABLE_LOGGING
 #include <hwmalloc/log.hpp>
+
+#include <sstream>
 #include <string>
 #endif
 
@@ -59,19 +61,27 @@ heap_config::heap_config(std::size_t tiny_limit, std::size_t small_limit, std::s
     // Validate that tiny_limit < small_limit < large_limit
     if (!(m_tiny_limit < m_small_limit && m_small_limit < m_large_limit))
     {
-        // TODO: Print actual values
-        throw std::runtime_error(
-            "Invalid heap size configuration: "
-            "HWMALLOC_TINY_LIMIT < HWMALLOC_SMALL_LIMIT < HWMALLOC_LARGE_LIMIT must hold.");
+        std::ostringstream os;
+        os << "Invalid heap size configuration: HWMALLOC_TINY_LIMIT < HWMALLOC_SMALL_LIMIT < HWMALLOC_LARGE_LIMIT must hold.";
+        os << "Got HWMALLOC_TINY_LIMIT=" << m_tiny_limit
+           << ", HWMALLOC_SMALL_LIMIT=" << m_small_limit
+           << ", HWMALLOC_LARGE_LIMIT=" << m_large_limit << ".";
+        throw std::runtime_error(os.str());
     }
 
     // Validate that limits are at most segment sizes
     if (!(tiny_limit <= tiny_segment_size && small_limit <= small_segment_size &&
             large_limit <= large_segment_size))
     {
-        // TODO: Print actual values
-        throw std::runtime_error("Invalid heap size configuration: "
-                                 "Limits must be at most segment sizes.");
+        std::ostringstream os;
+        os << "Invalid heap size configuration: Limits must be at most segment sizes.";
+        os << "Got HWMALLOC_TINY_LIMIT=" << m_tiny_limit
+           << ", HWMALLOC_TINY_SEGMENT_SIZE=" << m_tiny_segment_size
+           << ", HWMALLOC_SMALL_LIMIT=" << m_small_limit
+           << ", HWMALLOC_SMALL_SEGMENT_SIZE=" << m_small_segment_size
+           << ", HWMALLOC_LARGE_LIMIT=" << m_large_limit
+           << ", HWMALLOC_LARGE_SEGMENT_SIZE=" << m_large_segment_size << ".";
+        throw std::runtime_error(os.str());
     }
 }
 
