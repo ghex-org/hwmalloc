@@ -14,11 +14,11 @@
 #ifdef HWMALLOC_ENABLE_LOGGING
 #include <hwmalloc/log.hpp>
 
-#include <sstream>
 #include <string>
 #endif
 
 #include <cstdlib>
+#include <sstream>
 #include <stdexcept>
 
 namespace hwmalloc
