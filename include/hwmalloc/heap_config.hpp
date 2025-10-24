@@ -30,6 +30,8 @@ round_to_pow_of_2(std::size_t n) noexcept
 
 struct heap_config
 {
+    bool                         m_never_free;
+    std::size_t                  m_num_reserve_segments;
     std::size_t                  m_tiny_limit;
     std::size_t                  m_small_limit;
     std::size_t                  m_large_limit;
@@ -43,9 +45,9 @@ struct heap_config
     std::size_t m_num_small_heaps = detail::log2_c(m_small_limit) - detail::log2_c(m_tiny_limit);
     std::size_t m_num_large_heaps = detail::log2_c(m_large_limit) - detail::log2_c(m_small_limit);
 
-    heap_config(std::size_t tiny_limit, std::size_t small_limit, std::size_t large_limit,
-        std::size_t tiny_segment_size, std::size_t small_segment_size,
-        std::size_t large_segment_size);
+    heap_config(bool never_free, std::size_t num_reserve_segments, std::size_t tiny_limit,
+        std::size_t small_limit, std::size_t large_limit, std::size_t tiny_segment_size,
+        std::size_t small_segment_size, std::size_t large_segment_size);
 };
 
 heap_config const& get_default_heap_config();

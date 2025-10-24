@@ -25,6 +25,29 @@ namespace hwmalloc
 {
 namespace detail
 {
+static bool
+get_env_bool(const char* name, bool default_value) noexcept
+{
+    const char* env_value = std::getenv(name);
+    if (env_value)
+    {
+        try
+        {
+            return std::stoul(env_value) != 0;
+        }
+        catch (...)
+        {
+#ifdef HWMALLOC_ENABLE_LOGGING
+            HWMALLOC_LOG("failed to parse boolean configuration option", name, "=", env_value,
+                "(expected 0 or 1), using default =", default_value);
+#endif
+            return default_value;
+        }
+    }
+
+    return default_value;
+}
+
 static std::size_t
 get_env_size_t(const char* name, std::size_t default_value) noexcept
 {
@@ -49,9 +72,12 @@ get_env_size_t(const char* name, std::size_t default_value) noexcept
 }
 } // namespace detail
 
-heap_config::heap_config(std::size_t tiny_limit, std::size_t small_limit, std::size_t large_limit,
-    std::size_t tiny_segment_size, std::size_t small_segment_size, std::size_t large_segment_size)
-: m_tiny_limit{detail::round_to_pow_of_2(tiny_limit)}
+heap_config::heap_config(bool never_free, std::size_t num_reserve_segments, std::size_t tiny_limit,
+    std::size_t small_limit, std::size_t large_limit, std::size_t tiny_segment_size,
+    std::size_t small_segment_size, std::size_t large_segment_size)
+: m_never_free{never_free}
+, m_num_reserve_segments{num_reserve_segments}
+, m_tiny_limit{detail::round_to_pow_of_2(tiny_limit)}
 , m_small_limit{detail::round_to_pow_of_2(small_limit)}
 , m_large_limit{detail::round_to_pow_of_2(large_limit)}
 , m_tiny_segment_size{detail::round_to_pow_of_2(tiny_segment_size)}
@@ -62,7 +88,7 @@ heap_config::heap_config(std::size_t tiny_limit, std::size_t small_limit, std::s
     if (!(m_tiny_limit < m_small_limit && m_small_limit < m_large_limit))
     {
         std::ostringstream os;
-        os << "Invalid heap size configuration: HWMALLOC_TINY_LIMIT < HWMALLOC_SMALL_LIMIT < HWMALLOC_LARGE_LIMIT must hold.";
+        os << "Invalid heap size configuration: HWMALLOC_TINY_LIMIT < HWMALLOC_SMALL_LIMIT < HWMALLOC_LARGE_LIMIT must hold. ";
         os << "Got HWMALLOC_TINY_LIMIT=" << m_tiny_limit
            << ", HWMALLOC_SMALL_LIMIT=" << m_small_limit
            << ", HWMALLOC_LARGE_LIMIT=" << m_large_limit << ".";
@@ -74,7 +100,7 @@ heap_config::heap_config(std::size_t tiny_limit, std::size_t small_limit, std::s
             large_limit <= large_segment_size))
     {
         std::ostringstream os;
-        os << "Invalid heap size configuration: Limits must be at most segment sizes.";
+        os << "Invalid heap size configuration: Limits must be at most segment sizes. ";
         os << "Got HWMALLOC_TINY_LIMIT=" << m_tiny_limit
            << ", HWMALLOC_TINY_SEGMENT_SIZE=" << m_tiny_segment_size
            << ", HWMALLOC_SMALL_LIMIT=" << m_small_limit
@@ -90,6 +116,8 @@ get_default_heap_config()
 {
     static heap_config config{
         // TODO: Increase limits and sizes
+        detail::get_env_bool("HWMALLOC_NEVER_FREE", false),
+        detail::get_env_size_t("HWMALLOC_NUM_RESERVE_SEGMENTS", 1u),
         detail::get_env_size_t("HWMALLOC_TINY_LIMIT", (1u << 7)),          // 128B
         detail::get_env_size_t("HWMALLOC_SMALL_LIMIT", (1u << 10)),        // 1KiB
         detail::get_env_size_t("HWMALLOC_LARGE_LIMIT", (1u << 16)),        // 64KiB

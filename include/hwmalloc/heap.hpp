@@ -117,47 +117,41 @@ class heap
     heap_config m_config;
     Context*    m_context;
     std::size_t m_max_size;
-    bool        m_never_free;
-    std::size_t m_num_reserve_segments;
     heap_vector m_tiny_heaps;
     heap_vector m_heaps;
     heap_map    m_huge_heaps;
     std::mutex  m_mutex;
 
   public:
-    // TODO: never_free and num_reserve_segments in heap_config?
-    heap(Context* context, bool never_free = false, std::size_t num_reserve_segments = 1,
-        heap_config config = get_default_heap_config())
+    heap(Context* context, heap_config const& config = get_default_heap_config())
     : m_config{config}
     , m_context{context}
     , m_max_size(
           std::max(detail::round_to_pow_of_2(m_config.m_large_limit * 2), m_config.m_large_limit))
-    , m_never_free{never_free}
-    , m_num_reserve_segments{num_reserve_segments}
     , m_tiny_heaps(m_config.m_tiny_limit / m_config.m_tiny_increment)
     , m_heaps(bucket_index(m_max_size, m_config.m_bucket_shift) + 1)
     {
         for (std::size_t i = 0; i < m_tiny_heaps.size(); ++i)
             m_tiny_heaps[i] = std::make_unique<fixed_size_heap_type>(m_context,
-                m_config.m_tiny_increment * (i + 1), m_config.m_tiny_segment_size, m_never_free,
-                m_num_reserve_segments);
+                m_config.m_tiny_increment * (i + 1), m_config.m_tiny_segment_size,
+                m_config.m_never_free, m_config.m_num_reserve_segments);
 
         for (std::size_t i = 0; i < m_config.m_num_small_heaps; ++i)
             m_heaps[i] = std::make_unique<fixed_size_heap_type>(m_context,
-                (m_config.m_tiny_limit << (i + 1)), m_config.m_small_segment_size, m_never_free,
-                m_num_reserve_segments);
+                (m_config.m_tiny_limit << (i + 1)), m_config.m_small_segment_size,
+                m_config.m_never_free, m_config.m_num_reserve_segments);
 
         for (std::size_t i = 0; i < m_config.m_num_large_heaps; ++i)
             m_heaps[i + m_config.m_num_small_heaps] = std::make_unique<fixed_size_heap_type>(
                 m_context, (m_config.m_small_limit << (i + 1)), m_config.m_large_segment_size,
-                m_never_free, m_num_reserve_segments);
+                m_config.m_never_free, m_config.m_num_reserve_segments);
 
         for (std::size_t i = 0;
              i < m_heaps.size() - (m_config.m_num_small_heaps + m_config.m_num_large_heaps); ++i)
             m_heaps[i + m_config.m_num_small_heaps + m_config.m_num_large_heaps] =
                 std::make_unique<fixed_size_heap_type>(m_context,
                     (m_config.m_large_limit << (i + 1)), (m_config.m_large_limit << (i + 1)),
-                    m_never_free, m_num_reserve_segments);
+                    m_config.m_never_free, m_config.m_num_reserve_segments);
     }
 
     heap(heap const&) = delete;
@@ -196,8 +190,8 @@ class heap
                 const auto                  s = detail::round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
                 if (!u_ptr)
-                    u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free,
-                        m_num_reserve_segments);
+                    u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s,
+                        m_config.m_never_free, m_config.m_num_reserve_segments);
                 h = u_ptr.get();
             }
             return {h->allocate(numa_node)};
@@ -228,8 +222,8 @@ class heap
                 const auto                  s = detail::round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
                 if (!u_ptr)
-                    u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s, m_never_free,
-                        m_num_reserve_segments);
+                    u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s,
+                        m_config.m_never_free, m_config.m_num_reserve_segments);
                 h = u_ptr.get();
             }
             return {h->allocate(numa_node, device_id)};
