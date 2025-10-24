@@ -222,8 +222,13 @@ TEST(close, neverfree)
 TEST(spread, free)
 {
     using heap_t = hwmalloc::heap<context>;
+    using heap_config_t = hwmalloc::heap_config;
     context c;
-    heap_t  h(&c);
+
+    heap_config_t hc = hwmalloc::get_default_heap_config();
+    hc.m_never_free = false;
+    hc.m_num_reserve_segments = 1;
+    heap_t h(&c, hc);
     n_registrations = 0;
 
 #pragma omp parallel
@@ -293,8 +298,13 @@ TEST(spread, free)
 TEST(close, free)
 {
     using heap_t = hwmalloc::heap<context>;
+    using heap_config_t = hwmalloc::heap_config;
     context c;
-    heap_t  h(&c);
+
+    heap_config_t hc = hwmalloc::get_default_heap_config();
+    hc.m_never_free = false;
+    hc.m_num_reserve_segments = 1;
+    heap_t h(&c, hc);
     n_registrations = 0;
 
 #pragma omp parallel
