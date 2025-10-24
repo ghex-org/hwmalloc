@@ -285,8 +285,7 @@ TEST(spread, free)
 #pragma omp master
         {
             printf("SPREAD, free :: n_registrations %d\n", n_registrations);
-            EXPECT_TRUE(
-                n_registrations == (thr_per_node * NITER * nnodes * (NBUFFERS - 1) + nnodes));
+            EXPECT_EQ(n_registrations, (thr_per_node * NITER * nnodes * (NBUFFERS - 1) + nnodes));
         }
     }
 }
@@ -353,7 +352,7 @@ TEST(close, free)
 #pragma omp master
         {
             printf("CLOSE, free :: n_registrations %d\n", n_registrations);
-            EXPECT_TRUE(n_registrations == (nthr * NITER * (NBUFFERS - 1) + nused_nodes));
+            EXPECT_EQ(n_registrations, (nthr * NITER * (NBUFFERS - 1) + nused_nodes));
         }
     }
 }
