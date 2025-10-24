@@ -17,6 +17,8 @@
 // variables.
 TEST(config, defaults)
 {
+    ::setenv("HWMALLOC_NEVER_FREE", "1", 1);
+    ::setenv("HWMALLOC_NUM_RESERVE_SEGMENTS", "19", 1);
     ::setenv("HWMALLOC_TINY_LIMIT", "512", 1);
     ::setenv("HWMALLOC_SMALL_LIMIT", "2000", 1);
     ::setenv("HWMALLOC_LARGE_LIMIT", "131072", 1);
@@ -26,6 +28,8 @@ TEST(config, defaults)
 
     hwmalloc::heap_config config = hwmalloc::get_default_heap_config();
 
+    EXPECT_EQ(config.m_never_free, true);
+    EXPECT_EQ(config.m_num_reserve_segments, 19u);
     EXPECT_EQ(config.m_tiny_limit, 512u);
     EXPECT_EQ(config.m_small_limit, 2048);
     EXPECT_EQ(config.m_large_limit, 131072u);
@@ -39,4 +43,3 @@ TEST(config, defaults)
     EXPECT_EQ(config.m_num_small_heaps, 2u);
     EXPECT_EQ(config.m_num_large_heaps, 6u);
 }
-
