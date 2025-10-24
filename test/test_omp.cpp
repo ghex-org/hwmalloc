@@ -73,8 +73,13 @@ register_memory(context&, void* ptr, std::size_t size)
 TEST(spread, neverfree)
 {
     using heap_t = hwmalloc::heap<context>;
+    using heap_config_t = hwmalloc::heap_config;
     context c;
-    heap_t  h(&c, 1024, true);
+
+    heap_config_t hc = hwmalloc::get_default_heap_config();
+    hc.m_never_free = true;
+    hc.m_num_reserve_segments = 1024;
+    heap_t h(&c, hc);
     n_registrations = 0;
 
 #pragma omp parallel
@@ -144,8 +149,13 @@ TEST(spread, neverfree)
 TEST(close, neverfree)
 {
     using heap_t = hwmalloc::heap<context>;
+    using heap_config_t = hwmalloc::heap_config;
     context c;
-    heap_t  h(&c, 1024, true);
+
+    heap_config_t hc = hwmalloc::get_default_heap_config();
+    hc.m_never_free = true;
+    hc.m_num_reserve_segments = 1024;
+    heap_t h(&c, hc);
     n_registrations = 0;
 
 #pragma omp parallel
