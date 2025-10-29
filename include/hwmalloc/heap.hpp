@@ -205,9 +205,9 @@ class heap
                 if (!u_ptr) {
                     const typename fixed_size_heap_type::pool_type::segment_alloc_cb_type segment_alloc_cb;
                     if (m_config.m_num_huge_alloc_warn_threshold > 0)
-                      segment_alloc_cb = std::bind(&heap::huge_alloc_cb, this)
+                      segment_alloc_cb = std::bind(&heap::huge_alloc_cb, this);
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s,
-                        m_config.m_never_free, m_config.m_num_reserve_segments, segment_alloc_cb);
+                        m_config.m_never_free, m_config.m_num_reserve_segments, std::move(segment_alloc_cb));
                 }
                 h = u_ptr.get();
             }
@@ -241,9 +241,9 @@ class heap
                 if (!u_ptr) {
                     const typename fixed_size_heap_type::pool_type::segment_alloc_cb_type& segment_alloc_cb;
                     if (m_config.m_num_huge_alloc_warn_threshold > 0)
-                      segment_alloc_cb = std::bind(&heap::huge_alloc_cb, this)
+                      segment_alloc_cb = std::bind(&heap::huge_alloc_cb, this);
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s,
-                        m_config.m_never_free, m_config.m_num_reserve_segments, segment_alloc_cb);
+                        m_config.m_never_free, m_config.m_num_reserve_segments, std::move(segment_alloc_cb));
                 }
                 h = u_ptr.get();
             }

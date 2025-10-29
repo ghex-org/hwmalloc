@@ -38,7 +38,7 @@ class fixed_size_heap
   public:
     fixed_size_heap(Context* context, std::size_t block_size, std::size_t segment_size,
         bool never_free, std::size_t num_reserve_segments,
-        typename pool_type::segment_alloc_cb_type segment_alloc_cb = nullptr)
+        const typename pool_type::segment_alloc_cb_type& segment_alloc_cb = nullptr)
     : m_context(context)
     , m_block_size(block_size)
     , m_segment_size(segment_size)
