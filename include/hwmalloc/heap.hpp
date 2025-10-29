@@ -203,7 +203,7 @@ class heap
                 const auto                  s = detail::round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
                 if (!u_ptr) {
-                    const typename fixed_size_heap_type::pool_type::segment_alloc_cb_type segment_alloc_cb;
+                    typename fixed_size_heap_type::pool_type::segment_alloc_cb_type segment_alloc_cb;
                     if (m_config.m_num_huge_alloc_warn_threshold > 0)
                       segment_alloc_cb = std::bind(&heap::huge_alloc_cb, this);
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s,
@@ -239,7 +239,7 @@ class heap
                 const auto                  s = detail::round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
                 if (!u_ptr) {
-                    const typename fixed_size_heap_type::pool_type::segment_alloc_cb_type& segment_alloc_cb;
+                    typename fixed_size_heap_type::pool_type::segment_alloc_cb_type& segment_alloc_cb;
                     if (m_config.m_num_huge_alloc_warn_threshold > 0)
                       segment_alloc_cb = std::bind(&heap::huge_alloc_cb, this);
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s,
