@@ -18,6 +18,7 @@
 #include <hwmalloc/allocator.hpp>
 #include <vector>
 #include <unordered_map>
+#include <iostream>
 
 namespace hwmalloc
 {
@@ -113,6 +114,16 @@ class heap
         return detail::log2_c((n - 1) >> bucket_shift) - 1;
     }
 
+    void huge_alloc_cb() {
+      m_num_huge_alloc += 1;
+      if (!m_num_huge_alloc_did_warn && m_num_huge_alloc >= m_config.m_num_huge_alloc_warn_threshold) {
+        m_num_huge_alloc_did_warn = true;
+        std::cerr
+            << "WARNING: huge allocation count exceeds HWMALLOC_NUM_HUGE_ALLOC_WARN_THERESHOLD="
+            << m_config.m_num_huge_alloc_warn_threshold << std::endl;
+      }
+    }
+
   private:
     heap_config m_config;
     Context*    m_context;
@@ -121,6 +132,8 @@ class heap
     heap_vector m_heaps;
     heap_map    m_huge_heaps;
     std::mutex  m_mutex;
+    std::size_t m_num_huge_alloc;
+    bool        m_num_huge_alloc_did_warn = false;
 
   public:
     heap(Context* context, heap_config const& config = get_default_heap_config())
@@ -189,9 +202,13 @@ class heap
                 std::lock_guard<std::mutex> lock(m_mutex);
                 const auto                  s = detail::round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
-                if (!u_ptr)
+                if (!u_ptr) {
+                    const typename fixed_size_heap_type::pool_type::segment_alloc_cb_type segment_alloc_cb;
+                    if (m_config.m_num_huge_alloc_warn_threshold > 0)
+                      segment_alloc_cb = std::bind(&heap::huge_alloc_cb, this)
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s,
-                        m_config.m_never_free, m_config.m_num_reserve_segments);
+                        m_config.m_never_free, m_config.m_num_reserve_segments, segment_alloc_cb);
+                }
                 h = u_ptr.get();
             }
             return {h->allocate(numa_node)};
@@ -221,9 +238,13 @@ class heap
                 std::lock_guard<std::mutex> lock(m_mutex);
                 const auto                  s = detail::round_to_pow_of_2(size);
                 auto&                       u_ptr = m_huge_heaps[s];
-                if (!u_ptr)
+                if (!u_ptr) {
+                    const typename fixed_size_heap_type::pool_type::segment_alloc_cb_type& segment_alloc_cb;
+                    if (m_config.m_num_huge_alloc_warn_threshold > 0)
+                      segment_alloc_cb = std::bind(&heap::huge_alloc_cb, this)
                     u_ptr = std::make_unique<fixed_size_heap_type>(m_context, s, s,
-                        m_config.m_never_free, m_config.m_num_reserve_segments);
+                        m_config.m_never_free, m_config.m_num_reserve_segments, segment_alloc_cb);
+                }
                 h = u_ptr.get();
             }
             return {h->allocate(numa_node, device_id)};
