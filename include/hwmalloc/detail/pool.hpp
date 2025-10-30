@@ -97,7 +97,8 @@ class pool
 
   public:
     pool(Context* context, std::size_t block_size, std::size_t segment_size, std::size_t numa_node,
-        bool never_free, std::size_t num_reserve_segments, segment_alloc_cb_type segment_alloc_cb)
+        bool never_free, std::size_t num_reserve_segments,
+        const segment_alloc_cb_type& segment_alloc_cb)
     : m_context{context}
     , m_block_size{block_size}
     , m_segment_size{segment_size}
@@ -111,7 +112,8 @@ class pool
 
 #if HWMALLOC_ENABLE_DEVICE
     pool(Context* context, std::size_t block_size, std::size_t segment_size, std::size_t numa_node,
-        int device_id, bool never_free, std::size_t num_reserve_segments, segment_alloc_cb_type segment_alloc_cb)
+        int device_id, bool never_free, std::size_t num_reserve_segments,
+        const segment_alloc_cb_type& segment_alloc_cb)
     : pool(context, block_size, segment_size, numa_node, never_free, num_reserve_segments, segment_alloc_cb)
     {
         m_device_id = device_id;
