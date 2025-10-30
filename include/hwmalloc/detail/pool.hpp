@@ -50,20 +50,20 @@ class pool
     }
 
   private:
-    Context*              m_context;
-    std::size_t           m_block_size;
-    std::size_t           m_segment_size;
-    std::size_t           m_numa_node;
-    bool                  m_never_free;
-    std::size_t           m_num_reserve_segments;
-    stack_type            m_free_stack;
-    segment_map           m_segments;
-    std::mutex            m_mutex;
-    int                   m_device_id = 0;
-    bool                  m_allocate_on_device = false;
+    Context*                     m_context;
+    std::size_t                  m_block_size;
+    std::size_t                  m_segment_size;
+    std::size_t                  m_numa_node;
+    bool                         m_never_free;
+    std::size_t                  m_num_reserve_segments;
+    stack_type                   m_free_stack;
+    segment_map                  m_segments;
+    std::mutex                   m_mutex;
+    int                          m_device_id = 0;
+    bool                         m_allocate_on_device = false;
     // Callback executed when a segment is allocated. Can be used to track the number of actual
     // memory allocations.
-    segment_alloc_cb_type m_segment_alloc_cb;
+    const segment_alloc_cb_type& m_segment_alloc_cb;
 
     void add_segment()
     {
