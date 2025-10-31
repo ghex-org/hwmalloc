@@ -73,8 +73,13 @@ register_memory(context&, void* ptr, std::size_t size)
 TEST(spread, neverfree)
 {
     using heap_t = hwmalloc::heap<context>;
+    using heap_config_t = hwmalloc::heap_config;
     context c;
-    heap_t  h(&c, 1024, true);
+
+    heap_config_t hc = hwmalloc::get_default_heap_config();
+    hc.m_never_free = true;
+    hc.m_num_reserve_segments = 1024;
+    heap_t h(&c, hc);
     n_registrations = 0;
 
 #pragma omp parallel
@@ -144,8 +149,13 @@ TEST(spread, neverfree)
 TEST(close, neverfree)
 {
     using heap_t = hwmalloc::heap<context>;
+    using heap_config_t = hwmalloc::heap_config;
     context c;
-    heap_t  h(&c, 1024, true);
+
+    heap_config_t hc = hwmalloc::get_default_heap_config();
+    hc.m_never_free = true;
+    hc.m_num_reserve_segments = 1024;
+    heap_t h(&c, hc);
     n_registrations = 0;
 
 #pragma omp parallel
@@ -212,8 +222,13 @@ TEST(close, neverfree)
 TEST(spread, free)
 {
     using heap_t = hwmalloc::heap<context>;
+    using heap_config_t = hwmalloc::heap_config;
     context c;
-    heap_t  h(&c);
+
+    heap_config_t hc = hwmalloc::get_default_heap_config();
+    hc.m_never_free = false;
+    hc.m_num_reserve_segments = 1;
+    heap_t h(&c, hc);
     n_registrations = 0;
 
 #pragma omp parallel
@@ -275,8 +290,7 @@ TEST(spread, free)
 #pragma omp master
         {
             printf("SPREAD, free :: n_registrations %d\n", n_registrations);
-            EXPECT_TRUE(
-                n_registrations == (thr_per_node * NITER * nnodes * (NBUFFERS - 1) + nnodes));
+            EXPECT_EQ(n_registrations, (thr_per_node * NITER * nnodes * (NBUFFERS - 1) + nnodes));
         }
     }
 }
@@ -284,8 +298,13 @@ TEST(spread, free)
 TEST(close, free)
 {
     using heap_t = hwmalloc::heap<context>;
+    using heap_config_t = hwmalloc::heap_config;
     context c;
-    heap_t  h(&c);
+
+    heap_config_t hc = hwmalloc::get_default_heap_config();
+    hc.m_never_free = false;
+    hc.m_num_reserve_segments = 1;
+    heap_t h(&c, hc);
     n_registrations = 0;
 
 #pragma omp parallel
@@ -343,7 +362,7 @@ TEST(close, free)
 #pragma omp master
         {
             printf("CLOSE, free :: n_registrations %d\n", n_registrations);
-            EXPECT_TRUE(n_registrations == (nthr * NITER * (NBUFFERS - 1) + nused_nodes));
+            EXPECT_EQ(n_registrations, (nthr * NITER * (NBUFFERS - 1) + nused_nodes));
         }
     }
 }
