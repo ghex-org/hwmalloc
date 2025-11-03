@@ -25,44 +25,35 @@ namespace hwmalloc
 {
 namespace detail
 {
-static bool
-get_env_bool(const char* name, bool default_value) noexcept
+template<typename T>
+T
+parse_value(const char* env_value)
+{
+    // This currently only supports the types needed within this file. If this
+    // should be used elsewhere this can be generalized to something that can be
+    // extended e.g. with template specializations instead a hardcoded list with
+    // if-constexpr.
+    if constexpr (std::is_same_v<T, std::size_t>) { return std::stoul(env_value); }
+    else if constexpr (std::is_same_v<T, bool>) { return std::stoul(env_value) != 0; }
+    else { static_assert(sizeof(T) == 0, "Unsupported type for parse_value"); }
+}
+
+template<typename T>
+bool
+get_env(const char* name, T default_value) noexcept
 {
     const char* env_value = std::getenv(name);
     if (env_value)
     {
         try
         {
-            return std::stoul(env_value) != 0;
+            return parse_value<T>(env_value);
         }
         catch (...)
         {
 #ifdef HWMALLOC_ENABLE_LOGGING
             HWMALLOC_LOG("failed to parse boolean configuration option", name, "=", env_value,
                 "(expected 0 or 1), using default =", default_value);
-#endif
-            return default_value;
-        }
-    }
-
-    return default_value;
-}
-
-static std::size_t
-get_env_size_t(const char* name, std::size_t default_value) noexcept
-{
-    const char* env_value = std::getenv(name);
-    if (env_value)
-    {
-        try
-        {
-            return std::stoul(env_value);
-        }
-        catch (...)
-        {
-#ifdef HWMALLOC_ENABLE_LOGGING
-            HWMALLOC_LOG("failed to parse configuration option", name, "=", env_value,
-                ", using default =", default_value);
 #endif
             return default_value;
         }
@@ -115,14 +106,14 @@ heap_config const&
 get_default_heap_config()
 {
     static heap_config config{
-        detail::get_env_bool("HWMALLOC_NEVER_FREE", false),
-        detail::get_env_size_t("HWMALLOC_NUM_RESERVE_SEGMENTS", 16u),
-        detail::get_env_size_t("HWMALLOC_TINY_LIMIT", (1u << 7)),          // 128B
-        detail::get_env_size_t("HWMALLOC_SMALL_LIMIT", (1u << 12)),        // 4KiB
-        detail::get_env_size_t("HWMALLOC_LARGE_LIMIT", (1u << 21)),        // 2MiB
-        detail::get_env_size_t("HWMALLOC_TINY_SEGMENT_SIZE", (1u << 16)),  // 64KiB
-        detail::get_env_size_t("HWMALLOC_SMALL_SEGMENT_SIZE", (1u << 16)), // 64KiB
-        detail::get_env_size_t("HWMALLOC_LARGE_SEGMENT_SIZE", (1u << 21))  // 2MiB
+        detail::get_env<bool>("HWMALLOC_NEVER_FREE", false),
+        detail::get_env<std::size_t>("HWMALLOC_NUM_RESERVE_SEGMENTS", 16u),
+        detail::get_env<std::size_t>("HWMALLOC_TINY_LIMIT", (1u << 7)),          // 128B
+        detail::get_env<std::size_t>("HWMALLOC_SMALL_LIMIT", (1u << 12)),        // 4KiB
+        detail::get_env<std::size_t>("HWMALLOC_LARGE_LIMIT", (1u << 21)),        // 2MiB
+        detail::get_env<std::size_t>("HWMALLOC_TINY_SEGMENT_SIZE", (1u << 16)),  // 64KiB
+        detail::get_env<std::size_t>("HWMALLOC_SMALL_SEGMENT_SIZE", (1u << 16)), // 64KiB
+        detail::get_env<std::size_t>("HWMALLOC_LARGE_SEGMENT_SIZE", (1u << 21))  // 2MiB
 
     };
 
