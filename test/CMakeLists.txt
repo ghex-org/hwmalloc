@@ -21,6 +21,7 @@ function(reg_test t)
     target_link_libraries(${t} PRIVATE gtest_main)
     target_link_libraries(${t} PRIVATE hwmalloc)
     target_link_libraries(${t} PRIVATE Boost::boost)
+    target_include_directories(${t} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
     add_test(NAME ${t} COMMAND $<TARGET_FILE:${t}>)
 endfunction()
 
