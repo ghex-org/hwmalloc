@@ -106,14 +106,18 @@ heap_config const&
 get_default_heap_config()
 {
     static heap_config config{
-        detail::get_env<bool>("HWMALLOC_NEVER_FREE", false),
-        detail::get_env<std::size_t>("HWMALLOC_NUM_RESERVE_SEGMENTS", 16u),
-        detail::get_env<std::size_t>("HWMALLOC_TINY_LIMIT", (1u << 7)),          // 128B
-        detail::get_env<std::size_t>("HWMALLOC_SMALL_LIMIT", (1u << 12)),        // 4KiB
-        detail::get_env<std::size_t>("HWMALLOC_LARGE_LIMIT", (1u << 21)),        // 2MiB
-        detail::get_env<std::size_t>("HWMALLOC_TINY_SEGMENT_SIZE", (1u << 16)),  // 64KiB
-        detail::get_env<std::size_t>("HWMALLOC_SMALL_SEGMENT_SIZE", (1u << 16)), // 64KiB
-        detail::get_env<std::size_t>("HWMALLOC_LARGE_SEGMENT_SIZE", (1u << 21))  // 2MiB
+        detail::get_env<bool>("HWMALLOC_NEVER_FREE", heap_config::never_free_default),
+        detail::get_env<std::size_t>("HWMALLOC_NUM_RESERVE_SEGMENTS",
+            heap_config::num_reserve_segments_default),
+        detail::get_env<std::size_t>("HWMALLOC_TINY_LIMIT", heap_config::tiny_limit_default),
+        detail::get_env<std::size_t>("HWMALLOC_SMALL_LIMIT", heap_config::small_limit_default),
+        detail::get_env<std::size_t>("HWMALLOC_LARGE_LIMIT", heap_config::large_limit_default),
+        detail::get_env<std::size_t>("HWMALLOC_TINY_SEGMENT_SIZE",
+            heap_config::tiny_segment_size_default),
+        detail::get_env<std::size_t>("HWMALLOC_SMALL_SEGMENT_SIZE",
+            heap_config::small_segment_size_default),
+        detail::get_env<std::size_t>("HWMALLOC_LARGE_SEGMENT_SIZE",
+            heap_config::large_segment_size_default)
 
     };
 

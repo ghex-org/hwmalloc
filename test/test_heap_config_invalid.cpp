@@ -34,12 +34,12 @@ TEST(config, defaults)
 
     EXPECT_EQ(config.m_never_free, false);
     EXPECT_EQ(config.m_num_reserve_segments, 9u);
-    EXPECT_EQ(config.m_tiny_limit, hwmalloc::test::tiny_limit_default);
+    EXPECT_EQ(config.m_tiny_limit, hwmalloc::heap_config::tiny_limit_default);
     EXPECT_EQ(config.m_small_limit, 8192);
-    EXPECT_EQ(config.m_large_limit, hwmalloc::test::large_limit_default);
+    EXPECT_EQ(config.m_large_limit, hwmalloc::heap_config::large_limit_default);
     EXPECT_EQ(config.m_bucket_shift, hwmalloc::test::bucket_shift_default);
     EXPECT_EQ(config.m_tiny_segment_size, 16384u);
-    EXPECT_EQ(config.m_small_segment_size, hwmalloc::test::small_segment_size_default);
+    EXPECT_EQ(config.m_small_segment_size, hwmalloc::heap_config::small_segment_size_default);
     EXPECT_EQ(config.m_large_segment_size, 4194304u);
     EXPECT_EQ(config.m_tiny_increment_shift, hwmalloc::test::tiny_increment_shift_default);
     EXPECT_EQ(config.m_tiny_increment, hwmalloc::test::tiny_increment_default);

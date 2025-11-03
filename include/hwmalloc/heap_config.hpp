@@ -30,6 +30,15 @@ round_to_pow_of_2(std::size_t n) noexcept
 
 struct heap_config
 {
+    static constexpr bool        never_free_default = false;
+    static constexpr std::size_t num_reserve_segments_default = 16u;
+    static constexpr std::size_t tiny_limit_default = 128u;             // 128B
+    static constexpr std::size_t small_limit_default = 4096u;           // 4KiB
+    static constexpr std::size_t large_limit_default = 2097152u;        // 2MiB
+    static constexpr std::size_t tiny_segment_size_default = 65536u;    // 64KiB
+    static constexpr std::size_t small_segment_size_default = 65536u;   // 64KiB
+    static constexpr std::size_t large_segment_size_default = 2097152u; // 2MiB
+
     bool                         m_never_free;
     std::size_t                  m_num_reserve_segments;
     std::size_t                  m_tiny_limit;
