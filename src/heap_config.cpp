@@ -39,7 +39,7 @@ parse_value(const char* env_value)
 }
 
 template<typename T>
-bool
+T
 get_env(const char* name, T default_value) noexcept
 {
     const char* env_value = std::getenv(name);
