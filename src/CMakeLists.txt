@@ -23,10 +23,21 @@ if (HWMALLOC_ENABLE_DEVICE)
         target_link_libraries(hwmalloc PRIVATE CUDA::cudart)
     elseif (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "hip")
         find_package(hip REQUIRED)
-        target_link_libraries(hwmalloc PRIVATE hip::device)
+        add_library(hip_gpu_code OBJECT device_hip.hip)
+        set_source_files_properties(hip_kernel.hip PROPERTIES
+            LANGUAGE HIP
+        )
+        target_link_libraries(hip_gpu_code PRIVATE hip::device)
+        target_include_directories(hip_gpu_code PRIVATE
+            "$<TARGET_PROPERTY:hwmalloc,INTERFACE_INCLUDE_DIRECTORIES>"
+        )
     endif()
-
-    target_sources(hwmalloc PRIVATE device_${HWMALLOC_DEVICE_RUNTIME}.cpp)
+    
+    if (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "cuda")
+        target_sources(hwmalloc PRIVATE device_${HWMALLOC_DEVICE_RUNTIME}.cpp)
+    elseif (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "hip")
+        target_link_libraries(hwmalloc PRIVATE hip_gpu_code)
+    endif()
 else()
     set(HWMALLOC_DEVICE "HWMALLOC_DEVICE_NONE" CACHE INTERNAL "" FORCE)
     target_sources(hwmalloc PRIVATE device_none.cpp)
