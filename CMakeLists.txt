@@ -3,10 +3,6 @@ cmake_minimum_required(VERSION 3.17)
 # TODO: find a workaround to be able to lower the version requirement
 project(hwmalloc VERSION 0.4.1 LANGUAGES CXX)
 
-if(DEFINED HWMALLOC_DEVICE_RUNTIME AND HWMALLOC_DEVICE_RUNTIME STREQUAL "hip")
-    enable_language(HIP)
-endif()
-
 # ------------------------------------------------------------------------------
 # Policies
 # ------------------------------------------------------------------------------
@@ -33,6 +29,18 @@ endif()
 
 set(HWMALLOC_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${HWMALLOC_MODULE_PATH}")
+
+if (HWMALLOC_ENABLE_DEVICE)
+    set(HWMALLOC_DEVICE_RUNTIME "cuda" CACHE STRING "Choose the type of the gpu runtime.")
+    set_property(CACHE HWMALLOC_DEVICE_RUNTIME PROPERTY STRINGS "cuda" "hip" "emulate")
+
+    string(TOUPPER ${HWMALLOC_DEVICE_RUNTIME} HWMALLOC_DEVICE_RUNTIME_U)
+    set(HWMALLOC_DEVICE_RUNTIME_ ${HWMALLOC_DEVICE_RUNTIME_U} CACHE INTERNAL "" FORCE)
+    set(HWMALLOC_DEVICE "HWMALLOC_DEVICE_${HWMALLOC_DEVICE_RUNTIME_}" CACHE INTERNAL "" FORCE)
+    if (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "hip")
+        enable_language(HIP)
+    endif()
+endif()
 
 # ---------------------------------------------------------------------
 # Define main hwmalloc library
