@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.17)
 # TODO: find a workaround to be able to lower the version requirement
 project(hwmalloc VERSION 0.4.1 LANGUAGES CXX)
 
+if(${HWMALLOC_DEVICE_RUNTIME} STREQUAL "hip")
+    enable_language(HIP)
+endif()
+
 # ------------------------------------------------------------------------------
 # Policies
 # ------------------------------------------------------------------------------

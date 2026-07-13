@@ -22,12 +22,11 @@ if (HWMALLOC_ENABLE_DEVICE)
         find_package(CUDAToolkit REQUIRED)
         target_link_libraries(hwmalloc PRIVATE CUDA::cudart)
     elseif (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "hip")
-        find_package(hip REQUIRED)
+        message(STATUS "CMAKE_HIP_ARCHITECTURES = ${CMAKE_HIP_ARCHITECTURES}")
         add_library(hip_gpu_code OBJECT device_hip.cpp)
         set_source_files_properties(device_hip.cpp PROPERTIES
             LANGUAGE HIP
         )
-        target_link_libraries(hip_gpu_code PRIVATE hip::device)
         target_include_directories(hip_gpu_code PRIVATE
             "$<TARGET_PROPERTY:hwmalloc,INTERFACE_INCLUDE_DIRECTORIES>"
         )
