@@ -23,7 +23,7 @@ if (HWMALLOC_ENABLE_DEVICE)
         target_link_libraries(hwmalloc PRIVATE CUDA::cudart)
     elseif (${HWMALLOC_DEVICE_RUNTIME} STREQUAL "hip")
         find_package(hip REQUIRED)
-        target_link_libraries(hwmalloc PRIVATE hip::device)
+        target_link_libraries(hwmalloc PRIVATE hip::host)
     endif()
 
     target_sources(hwmalloc PRIVATE device_${HWMALLOC_DEVICE_RUNTIME}.cpp)
